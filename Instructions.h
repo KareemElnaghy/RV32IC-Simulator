@@ -160,17 +160,25 @@ void bType(unsigned int instWord)
 void uType(unsigned int instWord)
 {
     unsigned int rd, opcode;
-    signed int I_imm;
+    unsigned int I_imm;
     unsigned int instPC = pc - 4;
+    unsigned int tempU;
 
     opcode = instWord & 0x0000007F;
     rd = (instWord >> 7) & 0x0000001F;
     I_imm = ((instWord >> 12) & 0xFFFFF);
 
-    if(opcode == 0x37)
+    if(opcode == 0x37) {
         cout << "\tLUI\t" << registers[rd].getABI() <<", " << I_imm;
-    else if(opcode == 0x17)
+        tempU = I_imm << 12;
+        registers[rd].setDataU(tempU);
+    }
+
+    else if(opcode == 0x17) {
         cout << "\tAUIPC\t" << registers[rd].getABI() <<", " << I_imm;
+        tempU = pc + (I_imm << 12);
+        registers[rd].setDataU(tempU);
+    }
     else
         cout << "\tUnknown U Instruction \n";
 
