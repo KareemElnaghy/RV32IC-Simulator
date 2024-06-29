@@ -4,24 +4,25 @@
 
 #ifndef RV32IC_SIMULATOR_REGISTER_H
 #define RV32IC_SIMULATOR_REGISTER_H
-#include <iostream>
+#include <string>
 using namespace std;
 
 class Register
 {
     string name;
     string ABI;
-    uint32_t data;
+    unsigned int data;
 
 public:
     Register();
     Register(int x);
-    void setData(uint32_t x);
+    void setDataU(unsigned int x);
+    void setData(int x);
     string getName();
     string getABI();
-    uint32_t getData();
+    unsigned int getDataU();
+    int getData();
 
 };
-
 
 #endif //RV32IC_SIMULATOR_REGISTER_H
