@@ -2,6 +2,7 @@
 // Created by Kareem Elnaghy on 6/29/24.
 //
 #include <iostream>
+#include "Register.h"
 #include "Instructions.h"
 using namespace std;
 
@@ -19,39 +20,51 @@ void Instructions::rType(unsigned int instWord)
     {
         case 0:
             if (funct7 == 32) {
-                cout << "\tSUB\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+                cout << "\tSUB\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
+                registers[rd].setData(registers[rs1].getData() - registers[rs2].getData());
             } else {
-                cout << "\tADD\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+                cout << "\tADD\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
+                registers[rd].setDataU(registers[rs1].getDataU() + registers[rs2].getDataU());
             }
             break;
 
         case 1:
-            cout << "\tSLL\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
-
+            cout << "\tSLL\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
+            registers[rd].setData(registers[rs1].getData() << registers[rs2].getData());
+            break;
         case 2:
-            cout << "\tSLT\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+            cout << "\tSLT\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
 
         case 3:
-            cout << "\tSLTU\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+            cout << "\tSLTU\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
 
         case 4:
-            cout << "\tXOR\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+            cout << "\tXOR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
+            registers[rd].setData(registers[rs1].getData() ^ registers[rs2].getData());
+            break;
 
         case 5:
             if(funct7 == 32)
             {
-                cout << "\tSRA\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+                cout << "\tSRA\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
+                int temp = registers[rs1].getData();
+                registers[rd].setData(temp>>registers[rs2].getDataU());
             }
             else
             {
-                cout << "\tSRL\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+                cout << "\tSRL\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
+                registers[rd].setData(registers[rs1].getData() >> registers[rs2].getData());
+                break;
             }
 
         case 6:
-            cout << "\tOR\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
-
+            cout << "\tOR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
+            registers[rd].setData(registers[rs1].getData() | registers[rs2].getData());
+            break;
         case 7:
-            cout << "\tAND\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+            cout << "\tAND\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
+            registers[rd].setData(registers[rs1].getData() & registers[rs2].getData());
+            break;
 
         default:
             cout << "\tUnknown Instruction \n";
