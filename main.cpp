@@ -13,7 +13,7 @@ void initialiseRegs()
 {
     for(int i = 0; i<32; i++)
     {
-        registers[i] = Register("x"+ to_string(i));
+        registers[i] = Register(i);
     }
 }
 void emitError(string msg)

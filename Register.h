@@ -15,7 +15,7 @@ class Register
 
 public:
     Register();
-    Register(string name);
+    Register(int x);
     void setData(uint32_t x);
     string getName();
     string getABI();
