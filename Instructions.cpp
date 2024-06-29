@@ -10,7 +10,7 @@ void Instructions::rType(unsigned int instWord)
 
 }
 
-void Instructions::iType(unsigned int instWord)
+void Instructions::iType(unsigned int instWord, Register registers[32], unsigned int pc)
 {
     unsigned int rd, rs1, funct3, funct7, opcode,shamt, I_immU;
     signed int I_imm;
@@ -91,7 +91,7 @@ void Instructions::bType(unsigned int instWord)
 
 }
 
-void Instructions::uType(unsigned int instWord)
+void Instructions::uType(unsigned int instWord, Register registers[32], unsigned int pc)
 {
     unsigned int rd, opcode;
     signed int I_imm;
@@ -116,7 +116,7 @@ void Instructions::jType(unsigned int instWord)
 
 }
 
-void Instructions::Load(unsigned int instWord)
+void Instructions::Load(unsigned int instWord, Register registers[32], unsigned int pc)
 {
     unsigned int rd, rs1, funct3, opcode;
     signed int I_imm;
