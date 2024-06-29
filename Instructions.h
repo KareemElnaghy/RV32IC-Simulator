@@ -3,8 +3,12 @@
 //
 #include <iostream>
 using namespace std;
-
+//Global Variables
+const int MEMORY_SIZE = 64*1024;
 const int NUM_REGISTERS = 32;
+
+unsigned int pc;
+unsigned char memory[MEMORY_SIZE];
 Register registers[NUM_REGISTERS];
 
 void rType(unsigned int instWord)
@@ -72,7 +76,7 @@ void rType(unsigned int instWord)
     }
 }
 
-void iType(unsigned int instWord, Register registers[32], unsigned int pc)
+void iType(unsigned int instWord)
 {
     unsigned int rd, rs1, funct3, funct7, opcode,shamt, I_immU;
     signed int I_imm;
@@ -153,7 +157,7 @@ void bType(unsigned int instWord)
 
 }
 
-void uType(unsigned int instWord, Register registers[32], unsigned int pc)
+void uType(unsigned int instWord)
 {
     unsigned int rd, opcode;
     signed int I_imm;
@@ -178,7 +182,7 @@ void jType(unsigned int instWord)
 
 }
 
-void Load(unsigned int instWord, Register registers[32], unsigned int pc)
+void Load(unsigned int instWord)
 {
     unsigned int rd, rs1, funct3, opcode;
     signed int I_imm;
