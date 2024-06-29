@@ -13,7 +13,7 @@ void Instructions::rType(unsigned int instWord)
 void Instructions::iType(unsigned int instWord)
 {
     unsigned int rd, rs1, func3, func7, opcode,shamt, I_immU;
-    unsigned int I_imm;
+    signed int I_imm;
     unsigned int instPC = pc - 4;
 
     opcode = instWord & 0x0000007F;
@@ -73,7 +73,7 @@ void Instructions::bType(unsigned int instWord)
 void Instructions::uType(unsigned int instWord)
 {
     unsigned int rd, opcode;
-    unsigned int I_imm;
+    signed int I_imm;
     unsigned int instPC = pc - 4;
 
     opcode = instWord & 0x0000007F;
@@ -98,7 +98,7 @@ void Instructions::jType(unsigned int instWord)
 void Instructions::Load(unsigned int instWord)
 {
     unsigned int rd, rs1, func3, opcode;
-    unsigned int I_imm;
+    signed int I_imm;
     unsigned int instPC = pc - 4;
 
     opcode = instWord & 0x0000007F;
