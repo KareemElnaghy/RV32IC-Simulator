@@ -12,7 +12,7 @@ void Instructions::rType(unsigned int instWord)
 
 void Instructions::iType(unsigned int instWord)
 {
-    unsigned int rd, rs1, rs2, func3, func7, opcode,shamt, I_immU;
+    unsigned int rd, rs1, func3, func7, opcode,shamt, I_immU;
     unsigned int I_imm;
     unsigned int instPC = pc - 4;
 
@@ -56,11 +56,8 @@ void Instructions::iType(unsigned int instWord)
             cout << "\tSRAI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << shamt << "\n";
             break;
 
-
-
-
         default:
-            std::cout << "\tUnknown R Instruction \n";
+            cout << "\tUnknown R Instruction \n";
     }
 }
 
@@ -75,6 +72,21 @@ void Instructions::bType(unsigned int instWord)
 
 void Instructions::uType(unsigned int instWord)
 {
+    unsigned int rd, opcode;
+    unsigned int I_imm;
+    unsigned int instPC = pc - 4;
+
+    opcode = instWord & 0x0000007F;
+    rd = (instWord >> 7) & 0x0000001F;
+    I_imm = ((instWord >> 12) & 0xFFFFF);
+
+    if(opcode == 0x37)
+        cout << "\tLUI\t" << registers[rd].getABI() <<", " << I_imm;
+    else if(opcode == 0x17)
+        cout << "\tAUIPC\t" << registers[rd].getABI() <<", " << I_imm;
+    else
+        cout << "\tUnknown R Instruction \n";
+
 
 }
 
@@ -85,5 +97,34 @@ void Instructions::jType(unsigned int instWord)
 
 void Instructions::Load(unsigned int instWord)
 {
+    unsigned int rd, rs1, func3, opcode;
+    unsigned int I_imm;
+    unsigned int instPC = pc - 4;
 
+    opcode = instWord & 0x0000007F;
+    rd = (instWord >> 7) & 0x0000001F;
+    func3 = (instWord >> 12) & 0x00000007;
+    rs1 = (instWord >> 15) & 0x0000001F;
+    I_imm = ((instWord >> 20) & 0x7FF);
+
+    switch (funct3) {
+        case 0:
+            cout << "\tLB\t" << registers[rd].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
+            break;
+        case 1:
+            cout << "\tLH\t" << registers[rd].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
+            break;
+        case 2:
+            cout << "\tLW\t" << registers[rd].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
+            break;
+        case 3:
+            cout << "\tLBU\t" << registers[rd].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
+            break;
+        case 4:
+            cout << "\tLHU\t" << registers[rd].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
+            break;
+        default:
+            cout << "\tUnknown R Instruction \n";
+
+    }
 }
