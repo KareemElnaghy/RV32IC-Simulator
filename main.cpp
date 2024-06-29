@@ -5,12 +5,12 @@
 #include "Instructions.h"
 using namespace std;
 
+//Global Variables
 const int MEMORY_SIZE = 64*1024;
-const int NUM_REGISTERS = 32;
 
  unsigned int pc;
  unsigned char memory[MEMORY_SIZE];
- Register registers[NUM_REGISTERS];
+
 
 
 void initialiseRegs()
@@ -43,19 +43,21 @@ void instDecExe(unsigned int instWord) {
     std::cout << std::dec; // Switch back to decimal for register identifiers
 
     if (opcode == 0x33) { // R Instructions
-        instruction.rType(instWord);
+        rType(instWord);
     }
-    else if(opcode == 0x13 || opcode == 0x03)
+    else if(opcode == 0x13)
     {
-        instruction.iType(instWord);
+        iType(instWord);
     }
+    else if(opcode == 0x03)
+        Load(instWord);
     else if(opcode == 0x23)
     {
-        instruction.sType(instWord);
+        sType(instWord);
     }
     else if(opcode == 0x63)
     {
-        instruction.bType(instWord);
+        bType(instWord);
     }
     else cout<<"\tUnknown Instruction \n";
 }
