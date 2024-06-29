@@ -39,10 +39,13 @@ void rType(unsigned int instWord)
             break;
         case 2:
             cout << "\tSLT\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
+            registers[rd].setDataU((registers[rs1].getData() < registers[rs2].getData())? 1 : 0);
+            break;
 
         case 3:
             cout << "\tSLTU\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-
+            registers[rd].setDataU((registers[rs1].getDataU() < registers[rs2].getDataU())? 1 : 0);
+            break;
         case 4:
             cout << "\tXOR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
             registers[rd].setData(registers[rs1].getData() ^ registers[rs2].getData());
@@ -54,6 +57,7 @@ void rType(unsigned int instWord)
                 cout << "\tSRA\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
                 int temp = registers[rs1].getData();
                 registers[rd].setData(temp>>registers[rs2].getDataU());
+                break;
             }
             else
             {
