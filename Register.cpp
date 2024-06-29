@@ -9,7 +9,7 @@ using namespace std;
 
 Register::Register()
 {
-
+   data= 0;
 }
 Register::Register(int x)
 {
@@ -52,17 +52,17 @@ name = "x" + to_string(x);
 }
 void Register::setData(uint32_t x)
 {
-
+    data = x;
 }
 string Register::getName()
 {
-
+    return name;
 }
 string Register::getABI()
 {
-
+    return ABI;
 }
 uint32_t Register::getData()
 {
-
+    return data;
 }
