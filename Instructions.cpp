@@ -15,7 +15,8 @@ void Instructions::iType(unsigned int instWord)
     unsigned int rd, rs1, funct3, funct7, opcode,shamt, I_immU;
     signed int I_imm;
     unsigned int instPC = pc - 4;
-
+    signed int temp;
+    unsigned int tempU;
     opcode = instWord & 0x0000007F;
     rd = (instWord >> 7) & 0x0000001F;
     funct3 = (instWord >> 12) & 0x00000007;
@@ -30,30 +31,50 @@ void Instructions::iType(unsigned int instWord)
     switch (funct3) {
         case 0:
             cout << "\tADDI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_imm << "\n";
+            temp= registers[rs1].getData() + I_imm;
+            registers[rd].setData(temp);
             break;
         case 2:
             cout << "\tSLTI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_imm << "\n";
+             temp= (registers[rs1].getData() < I_imm)? 1 : 0;
+            registers[rd].setData(temp);
             break;
         case 3:
             cout << "\tSLTIU\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_immU << "\n";
+        temp= (registers[rs1].getData() < I_immU)? 1 : 0;
+        registers[rd].setData(temp);
             break;
         case 4:
             cout << "\tXORI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_imm << "\n";
+            temp = registers[rs1].getData() ^ I_imm;
+            registers[rd].setData(temp);
             break;
         case 6:
             cout << "\tORI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_imm << "\n";
+            temp = registers[rs1].getData() | I_imm;
+            registers[rd].setData(temp);
             break;
         case 7:
             cout << "\tANDI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_imm << "\n";
+            temp = registers[rs1].getData() & I_imm;
+            registers[rd].setData(temp);
             break;
         case 1:
             cout << "\tSLLI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << shamt << "\n";
+            temp = registers[rs1].getData() << shamt;
+            registers[rd].setData(temp);
             break;
         case 5:
-            if(funct7==0)
+            if(funct7==0) {
                 cout << "\tSRLI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << shamt << "\n";
-            else
-            cout << "\tSRAI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << shamt << "\n";
+                tempU = registers[rs1].getData() >> shamt;
+                registers[rd].setData(tempU);
+            }
+            else {
+                cout << "\tSRAI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << shamt << "\n";
+                temp = registers[rs1].getData() >> shamt;
+                registers[rd].setData(temp);
+            }
             break;
 
         default:
