@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include "Register.h"
+#include "Global.h"
 using namespace std;
 
 

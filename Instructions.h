@@ -4,7 +4,7 @@
 
 #ifndef RV32IC_SIMULATOR_INSTRUCTIONS_H
 #define RV32IC_SIMULATOR_INSTRUCTIONS_H
-
+#include "Global.h"
 class Instructions
 {
 public:
@@ -14,6 +14,8 @@ public:
     void bType(unsigned int instWord);
     void uType(unsigned int instWord);
     void jType(unsigned int instWord);
+    void Load(unsigned int instWord);
+
 
 };
 
