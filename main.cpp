@@ -2,12 +2,20 @@
 #include <fstream>
 #include <iomanip>
 #include "Register.h"
+#include "Instructions.h"
 using namespace std;
+
+const int MEMORY_SIZE = 64*1024;
+const int NUM_REGISTERS = 32;
+
+ unsigned int pc;
+ unsigned char memory[MEMORY_SIZE];
+ Register registers[NUM_REGISTERS];
 
 
 void initialiseRegs()
 {
-    for(unsigned int i = 0; i<32; i++)
+    for(int i = 0; i<NUM_REGISTERS; i++)
     {
         registers[i] = Register(i);
     }
@@ -25,35 +33,31 @@ void printPrefix(unsigned int instA, unsigned int instW) {
 }
 
 void instDecExe(unsigned int instWord) {
-    unsigned int opcode;
-    unsigned int I_imm;
+    Instructions instruction;
+    unsigned int opcode = instWord & 0x0000007F;
     unsigned int instPC = pc - 4;
 
-    opcode = instWord & 0x0000007F;
 
-
-    I_imm = ((instWord >> 20) & 0x7FF) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
 
     printPrefix(instPC, instWord);
     std::cout << std::dec; // Switch back to decimal for register identifiers
 
     if (opcode == 0x33) { // R Instructions
-
-            default:
-                std::cout << "\tUnknown R Instruction \n";
-        }
-    } else if (opcode == 0x13) { // I instructions
-        switch (funct3) {
-            case 0:
-                std::cout << "\tADDI\tx" << rd << ", x" << rs1 << ", 0x"
-                          << std::hex << (int)I_imm << "\n";
-                break;
-            default:
-                std::cout << "\tUnknown I Instruction \n";
-        }
-    } else {
-        std::cout << "\tUnknown Instruction \n";
+        instruction.rType(instWord);
     }
+    else if(opcode == 0x13 || opcode == 0x03)
+    {
+        instruction.iType(instWord);
+    }
+    else if(opcode == 0x23)
+    {
+        instruction.sType(instWord);
+    }
+    else if(opcode == 0x63)
+    {
+        instruction.bType(instWord);
+    }
+    else cout<<"\tUnknown Instruction \n";
 }
 
 
@@ -66,6 +70,7 @@ int main(int argc, char *argv[]) {
 
     if (iFile.is_open())
     {
+        initialiseRegs();
         int fsize = iFile.tellg();
 
         iFile.seekg(0, iFile.beg);
