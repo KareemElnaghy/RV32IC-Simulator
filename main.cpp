@@ -5,13 +5,6 @@
 #include "Instructions.h"
 using namespace std;
 
-//Global Variables
-const int MEMORY_SIZE = 64*1024;
-
- unsigned int pc;
- unsigned char memory[MEMORY_SIZE];
-
-
 
 void initialiseRegs()
 {
@@ -33,11 +26,9 @@ void printPrefix(unsigned int instA, unsigned int instW) {
 }
 
 void instDecExe(unsigned int instWord) {
-    Instructions instruction;
+
     unsigned int opcode = instWord & 0x0000007F;
     unsigned int instPC = pc - 4;
-
-
 
     printPrefix(instPC, instWord);
     std::cout << std::dec; // Switch back to decimal for register identifiers
@@ -79,7 +70,7 @@ int main(int argc, char *argv[]) {
 
         if (!iFile.read((char *) memory, fsize)) emitError("Cannot read from input file\n");
 
-        while (pc<32)  // Stops when PC reaches 32
+        while (pc<MEMORY_SIZE && memory[pc]!= 0)  // Stops when PC reaches 32
         {
             instWord = (unsigned char) memory[pc] | (((unsigned char) memory[pc + 1]) << 8) |(((unsigned char) memory[pc + 2]) << 16) |(((unsigned char) memory[pc + 3]) << 24);
             pc += 4;
