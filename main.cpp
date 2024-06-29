@@ -25,15 +25,12 @@ void printPrefix(unsigned int instA, unsigned int instW) {
 }
 
 void instDecExe(unsigned int instWord) {
-    unsigned int rd, rs1, rs2, funct3, funct7, opcode;
+    unsigned int opcode;
     unsigned int I_imm;
     unsigned int instPC = pc - 4;
 
     opcode = instWord & 0x0000007F;
-    rd = (instWord >> 7) & 0x0000001F;
-    funct3 = (instWord >> 12) & 0x00000007;
-    rs1 = (instWord >> 15) & 0x0000001F;
-    rs2 = (instWord >> 20) & 0x0000001F;
+
 
     I_imm = ((instWord >> 20) & 0x7FF) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
 
@@ -41,14 +38,7 @@ void instDecExe(unsigned int instWord) {
     std::cout << std::dec; // Switch back to decimal for register identifiers
 
     if (opcode == 0x33) { // R Instructions
-        switch (funct3) {
-            case 0:
-                if (funct7 == 32) {
-                    std::cout << "\tSUB\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
-                } else {
-                    std::cout << "\tADD\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
-                }
-                break;
+
             default:
                 std::cout << "\tUnknown R Instruction \n";
         }
