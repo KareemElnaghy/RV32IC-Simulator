@@ -3,4 +3,6 @@ project(RV32IC_Simulator)
 
 set(CMAKE_CXX_STANDARD 23)
 
-add_executable(RV32IC_Simulator main.cpp)
+add_executable(RV32IC_Simulator main.cpp
+        Register.h
+        Register.cpp)

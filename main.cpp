@@ -1,19 +1,27 @@
 #include <iostream>
 #include <fstream>
+#include <iomanip>
+#include "Register.h"
 using namespace std;
 
 // Global Variables
 unsigned int pc = 0;
 unsigned char memory[64*(1024)];
+Register registers[32];
 
+void initialiseRegs()
+{
+    for(int i = 0; i<32; i++)
+    {
+        registers[i] = Register("x"+ to_string(i));
+    }
+}
 void emitError(string msg)
 {
     cout<<msg;
     exit(0);
 }
 
-
-#include <iomanip>
 
 void printPrefix(unsigned int instA, unsigned int instW) {
     std::cout << "0x" << std::hex << std::setfill('0') << std::setw(8)
@@ -66,8 +74,6 @@ void instDecExe(unsigned int instWord) {
 int main(int argc, char *argv[]) {
     unsigned int instWord = 0;  // Variable to store instruction word
     ifstream iFile;
-    ofstream oFile;
-
     if (argc < 1) emitError("use: rvsim <machine_code_file_name> [data_section_file_name]\n");
 
     iFile.open(argv[1], ios::in | ios::binary | ios::ate);
