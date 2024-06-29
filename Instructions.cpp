@@ -57,7 +57,7 @@ void Instructions::iType(unsigned int instWord)
             break;
 
         default:
-            cout << "\tUnknown R Instruction \n";
+            cout << "\tUnknown I Instruction \n";
     }
 }
 
@@ -85,7 +85,7 @@ void Instructions::uType(unsigned int instWord)
     else if(opcode == 0x17)
         cout << "\tAUIPC\t" << registers[rd].getABI() <<", " << I_imm;
     else
-        cout << "\tUnknown R Instruction \n";
+        cout << "\tUnknown U Instruction \n";
 
 
 }
@@ -124,7 +124,7 @@ void Instructions::Load(unsigned int instWord)
             cout << "\tLHU\t" << registers[rd].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
             break;
         default:
-            cout << "\tUnknown R Instruction \n";
+            cout << "\tUnknown Load Instruction \n";
 
     }
 }
