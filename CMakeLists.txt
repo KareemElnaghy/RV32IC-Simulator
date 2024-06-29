@@ -8,4 +8,5 @@ add_executable(RV32IC_Simulator main.cpp
         Register.cpp
         Instructions.cpp
         Instructions.h
+        Global.h
 )

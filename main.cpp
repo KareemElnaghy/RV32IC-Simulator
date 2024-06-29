@@ -4,10 +4,6 @@
 #include "Register.h"
 using namespace std;
 
-// Global Variables
-unsigned int pc = 0;
-unsigned char memory[64*(1024)] ;
-Register registers[32];
 
 void initialiseRegs()
 {
