@@ -6,14 +6,14 @@ using namespace std;
 
 // Global Variables
 unsigned int pc = 0;
-unsigned char memory[64*(1024)];
+unsigned char memory[64*(1024)] ;
 Register registers[32];
 
 void initialiseRegs()
 {
-    for(int i = 0; i<32; i++)
+    for(unsigned int i = 0; i<32; i++)
     {
-        registers[i] = Register("x"+ to_string(i));
+        registers[i] = Register(i);
     }
 }
 void emitError(string msg)
