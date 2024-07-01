@@ -22,7 +22,7 @@ public:
     string getABI();
     unsigned int getDataU();
     int getData();
-
+    void  printRegData();
 };
 
 #endif //RV32IC_SIMULATOR_REGISTER_H

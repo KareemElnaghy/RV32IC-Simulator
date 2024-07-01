@@ -13,6 +13,14 @@ void initialiseRegs()
         registers[i] = Register(i);
     }
 }
+
+void printRegContent()
+{
+    for(int i = 0; i<NUM_REGISTERS; i++)
+    {
+        registers[i].printRegData();
+    }
+};
 void emitError(string msg)
 {
     cout<<msg;
@@ -80,4 +88,5 @@ int main(int argc, char *argv[]) {
     }
     else emitError("Cannot access input file\n");
 
+    printRegContent();
 }

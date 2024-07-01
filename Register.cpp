@@ -4,6 +4,7 @@
 
 #include "Register.h"
 #include <iostream>
+#include <iomanip>
 using namespace std;
 
 Register::Register()
@@ -75,5 +76,11 @@ int Register::getData()
 unsigned int Register::getDataU() {
     return data;
 }
+
+void Register::printRegData()
+{
+    cout<<"Register\t"<<this->getABI()<<"\t0x"<<hex << setfill('0') << setw(8) << this->getDataU()<<endl;
+}
+
 
 
