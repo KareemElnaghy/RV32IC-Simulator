@@ -100,48 +100,48 @@ void iType(unsigned int instWord)
 
     switch (funct3) {
         case 0:
-            cout << "\tADDI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_imm << "\n";
+            cout << "\tADDI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< I_imm << "\n";
             temp= registers[rs1].getData() + I_imm;
             registers[rd].setData(temp);
             break;
         case 2:
-            cout << "\tSLTI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_imm << "\n";
+            cout << "\tSLTI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< I_imm << "\n";
             temp= (registers[rs1].getData() < I_imm)? 1 : 0;
             registers[rd].setData(temp);
             break;
         case 3:
-            cout << "\tSLTIU\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_immU << "\n";
+            cout << "\tSLTIU\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex << I_immU << "\n";
             temp= (registers[rs1].getData() < I_immU)? 1 : 0;
             registers[rd].setData(temp);
             break;
         case 4:
-            cout << "\tXORI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_imm << "\n";
+            cout << "\tXORI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< I_imm << "\n";
             temp = registers[rs1].getData() ^ I_imm;
             registers[rd].setData(temp);
             break;
         case 6:
-            cout << "\tORI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_imm << "\n";
+            cout << "\tORI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< I_imm << "\n";
             temp = registers[rs1].getData() | I_imm;
             registers[rd].setData(temp);
             break;
         case 7:
-            cout << "\tANDI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_imm << "\n";
+            cout << "\tANDI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< I_imm << "\n";
             temp = registers[rs1].getData() & I_imm;
             registers[rd].setData(temp);
             break;
         case 1:
-            cout << "\tSLLI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << shamt << "\n";
+            cout << "\tSLLI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< shamt << "\n";
             temp = registers[rs1].getData() << shamt;
             registers[rd].setData(temp);
             break;
         case 5:
             if(funct7==0) {
-                cout << "\tSRLI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << shamt << "\n";
+                cout << "\tSRLI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< shamt << "\n";
                 tempU = registers[rs1].getData() >> shamt;
                 registers[rd].setData(tempU);
             }
             else {
-                cout << "\tSRAI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << shamt << "\n";
+                cout << "\tSRAI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< shamt << "\n";
                 temp = registers[rs1].getData() >> shamt;
                 registers[rd].setData(temp);
             }
@@ -173,13 +173,13 @@ void uType(unsigned int instWord)
     I_imm = ((instWord >> 12) & 0xFFFFF);
 
     if(opcode == 0x37) {
-        cout << "\tLUI\t" << registers[rd].getABI() <<", " << I_imm;
+        cout << "\tLUI\t" << registers[rd].getABI() <<", " << "0x" << hex<< I_imm;
         tempU = I_imm << 12;
         registers[rd].setDataU(tempU);
     }
 
     else if(opcode == 0x17) {
-        cout << "\tAUIPC\t" << registers[rd].getABI() <<", " << I_imm;
+        cout << "\tAUIPC\t" << registers[rd].getABI() <<", "<< "0x" << hex << I_imm;
         tempU = pc + (I_imm << 12);
         registers[rd].setDataU(tempU);
     }

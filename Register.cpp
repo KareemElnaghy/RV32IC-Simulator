@@ -9,10 +9,10 @@ using namespace std;
 
 Register::Register()
 {
-   data= 0;
 }
 Register::Register(int x)
 {
+    data= 0;
     name = "x" + to_string(x);
         switch (x) {
             case 0:  ABI = "zero"; break;
