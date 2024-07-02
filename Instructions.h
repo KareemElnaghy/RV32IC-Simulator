@@ -102,14 +102,13 @@ void rType(unsigned int instWord, bool s)
 int bType(unsigned int instWord, bool s) {
 
 
-    unsigned int rs1, rs2, funct3, opcode;
+    unsigned int rs1, rs2, funct3;
     signed int b_imm;
     unsigned int instPC1 = printPc - 4;
     unsigned int instPC2 = exPc - 4;
     int r;
 
 
-    opcode = instWord & 0x0000007F;
     rs1 = (instWord >> 15) & 0x0000001F;
     rs2 = (instWord >> 20) & 0x0000001F;
     funct3 = (instWord >> 12) & 0x00000007;
@@ -202,13 +201,12 @@ else {
 
 int jType(unsigned int instWord, bool s)
 {
-    unsigned int rd, opcode;
+    unsigned int rd;
     signed int j_imm;
     unsigned int instPC1 = printPc - 4;
     unsigned int instPC2 = exPc - 4;
     int r;
 
-    opcode = instWord & 0x0000007F;
     rd = (instWord >> 7) & 0x0000001F;
 
 
@@ -233,8 +231,8 @@ int jType(unsigned int instWord, bool s)
 
 void iType(unsigned int instWord, bool s)
 {
-    unsigned int rd, rs1, funct3, funct7, opcode,shamt, I_immU;
-    int16_t I_imm, I_immPrint;
+    unsigned int rd, rs1, funct3, funct7,shamt, I_immU;
+    int16_t I_imm;
     signed int temp;
     unsigned int tempU;
     rd = (instWord >> 7) & 0x0000001F;
@@ -329,7 +327,6 @@ void sType(unsigned int instWord,bool s)
 void uType(unsigned int instWord, bool s) {
     unsigned int rd, opcode;
     int I_imm;
-    unsigned int instPC = pc - 4;
     unsigned int tempU;
 
     opcode = instWord & 0x0000007F;
@@ -370,7 +367,9 @@ void uType(unsigned int instWord, bool s) {
 void Load(unsigned int instWord, bool s)
 {
     unsigned int rd, rs1, funct3, opcode;
-    signed int I_imm;
+    signed int I_imm, address;
+    int32_t temp;
+    int signedTempBit;
 
     rd = (instWord >> 7) & 0x0000001F;
     funct3 = (instWord >> 12) & 0x00000007;
@@ -384,20 +383,58 @@ void Load(unsigned int instWord, bool s)
 
     switch (funct3) {
         case 0:
+        if(s)
             cout << "\tLB\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
+        else {
+            address = I_imm + registers[rs1].getData();
+            temp = memory[address];
+            signedTempBit = (temp >> 7) & 1;
+            if(signedTempBit == 1) {
+                temp|= 0xFFFFFF00;
+            }
+            registers[rd].setData(temp);
+        }
             break;
         case 1:
+            if(s)
             cout << "\tLH\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
-            break;
+        else {
+            address = I_imm + registers[rs1].getData();
+            temp = memory[address] | (memory[address+1] << 8);
+            signedTempBit = (temp >> 15) & 1;
+            if(signedTempBit == 1) {
+                temp|= 0xFFFF0000;
+            }
+            registers[rd].setData(temp);
+        }
+        break;
         case 2:
+        if(s)
             cout << "\tLW\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
-            break;
+        else {
+            address = I_imm + registers[rs1].getData();
+            temp = memory[address] | (memory[address+1] << 8 ) (memory[address+2] << 16 ) (memory[address+3] << 24 );
+            registers[rd].setData(temp);
+        }
+        break;
         case 3:
+        if(s)
             cout << "\tLBU\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
-            break;
+        else {
+            address = I_imm + registers[rs1].getData();
+            temp = memory[address];
+            registers[rd].setData(temp);
+        }
+        break;
         case 4:
+        if(s)
             cout << "\tLHU\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
-            break;
+        else {
+            address = I_imm + registers[rs1].getData();
+            temp = memory[address] | (memory[address+1] << 8);
+            registers[rd].setData(temp);
+        }
+        break;
         default:
             cout << "\tUnknown Load Instruction \n";
 
