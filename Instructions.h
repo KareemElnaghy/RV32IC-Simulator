@@ -3,6 +3,9 @@
 //
 
 #include <iostream>
+#include <bitset>
+#include <cstdint>
+#include <vector>
 using namespace std;
 //Global Variables
 const int MEMORY_SIZE = 64*1024;
@@ -12,6 +15,7 @@ signed int printPc;
 signed int exPc;
 unsigned char memory[MEMORY_SIZE];
 Register registers[NUM_REGISTERS];
+vector<string> output;
 
 
 void rType(unsigned int instWord, bool s)
@@ -95,7 +99,7 @@ void rType(unsigned int instWord, bool s)
             break;
 
         default:
-            cout << "\tUnknown Instruction \n";
+            cout << "\tUnknown R Instruction \n";
     }
 }
 
@@ -279,8 +283,6 @@ void iType(unsigned int instWord, bool s)
         I_imm|= 0xF000;
     }
 
-
-
     switch (funct3) {
         case 0:
             if(s)
@@ -349,9 +351,60 @@ void iType(unsigned int instWord, bool s)
     }
 }
 
-void sType(unsigned int instWord,bool s)
-{
 
+void sType(unsigned int instWord, bool s)
+{
+    unsigned int rs1, rs2, funct3;
+    int32_t I_imm, address, temp;
+
+    funct3 = (instWord >> 12) & 0x00000007;
+    rs1 = (instWord >> 15) & 0x0000001F;
+    rs2 = (instWord >> 20) & 0x0000001F;
+    I_imm = (instWord >> 7) & 0x0000001F;
+    I_imm |= (instWord>>13) & 0x0007F000;
+
+    int signedBit = (I_imm >> 11) & 1;
+    if(signedBit == 1) {
+        I_imm|= 0xF000;
+    }
+
+    switch (funct3) {
+        case 0:
+            if(s)
+            cout << "\tSB\t" << registers[rs2].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
+            else {
+                address = I_imm + registers[rs1].getDataU();
+                memory[address] = registers[rs2].getData() & 0xFF;
+            }
+            break;
+        case 1:
+            if(s)
+            cout << "\tSH\t" << registers[rs2].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
+            else {
+                address = I_imm + registers[rs1].getDataU();
+                memory[address] = registers[rs2].getData() & 0xFF;
+                memory[address + 1] = registers[rs2].getData() & 0xFF00;
+            }
+            break;
+        case 2:
+            if(s)
+            cout << "\tSW\t" << registers[rs2].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
+            else {
+                address = I_imm + registers[rs1].getDataU();
+                for (int i = 0; i < 4; i++) {
+                    memory[address + i] = (registers[rs2].getData() >> i * 8) & 0xFF;
+                }
+            }
+            break;
+
+        default:
+            cout << "\tUnknown Load Instruction \n";
+
+    }
+}
+
+void bType(unsigned int instWord)
+{
 }
 
 void uType(unsigned int instWord, bool s) {
@@ -369,7 +422,7 @@ void uType(unsigned int instWord, bool s) {
     }
 
     if(opcode == 0x37) {
-        if(s) cout << "\tLUI\t" << registers[rd].getABI() <<", " << (I_imm & 0x000FFFFF);
+        if(s) cout << "\tLUI\t" << registers[rd].getABI() <<", "<< "0x" << hex<< setw(5) << (I_imm & 0x000FFFFF)<<endl;
         else
         {tempU = I_imm << 12;
             registers[rd].setDataU(tempU);}
@@ -377,11 +430,8 @@ void uType(unsigned int instWord, bool s) {
 
     else if(opcode == 0x17) {
         if(s)
-            cout << "\tAUIPC\t" << registers[rd].getABI() <<", " << (I_imm & 0x000FFFFF);
+            cout << "\tAUIPC\t" << registers[rd].getABI() <<", "<< "0x" << hex<< setw(5) << (I_imm & 0x000FFFFF)<<endl;
         else{
-            if(s)
-                tempU = printPc + (I_imm << 12);
-            else
                 tempU = exPc + (I_imm << 12);
 
             registers[rd].setDataU(tempU);
@@ -469,4 +519,33 @@ void Load(unsigned int instWord, bool s)
             cout << "\tUnknown Load Instruction \n";
 
     }
+}
+
+void ecall(bool s)
+{
+    if(s)
+    {
+        cout<<"\tECALL\t"<<endl;
+    }
+    else
+    {
+        if(registers[17].getDataU() == 10)
+        {
+            exit(0);
+        }
+        else if(registers[17].getDataU() == 1)
+        {
+            output.push_back(to_string(registers[10].getData()));
+        }
+        else if(registers[17].getDataU() == 4)
+        {
+            string str = "";
+            unsigned char* c = &memory[registers[10].getData()];
+            while (c != nullptr)
+                str += *c;
+
+            output.push_back(str);
+        }
+    }
+
 }
