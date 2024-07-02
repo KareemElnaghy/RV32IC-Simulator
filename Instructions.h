@@ -5,6 +5,7 @@
 #include <iostream>
 #include <bitset>
 #include <cstdint>
+#include <vector>
 using namespace std;
 //Global Variables
 const int MEMORY_SIZE = 64*1024;
@@ -14,6 +15,7 @@ unsigned int printPc;
 unsigned int exPc;
 unsigned char memory[MEMORY_SIZE];
 Register registers[NUM_REGISTERS];
+vector<string> output;
 
 
 void rType(unsigned int instWord, bool s)
@@ -513,4 +515,33 @@ void Load(unsigned int instWord, bool s)
             cout << "\tUnknown Load Instruction \n";
 
     }
+}
+
+void ecall(bool s)
+{
+    if(s)
+    {
+        cout<<"\tECALL\t"<<endl;
+    }
+    else
+    {
+        if(registers[17].getDataU() == 10)
+        {
+            exit(0);
+        }
+        else if(registers[17].getDataU() == 1)
+        {
+            output.push_back(to_string(registers[10].getData()));
+        }
+        else if(registers[17].getDataU() == 4)
+        {
+            string str = "";
+            unsigned char* c = &memory[registers[10].getData()];
+            while (c != nullptr)
+                str += *c;
+
+            output.push_back(str);
+        }
+    }
+
 }
