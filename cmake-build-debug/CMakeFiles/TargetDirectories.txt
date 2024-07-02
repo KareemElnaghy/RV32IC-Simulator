@@ -1,3 +1,0 @@
-/Users/malekfarouk/Documents/Uni semesters/AUC Summer 24/Comp Org & Assembly Lang/project1/RV32IC-Simulator/cmake-build-debug/CMakeFiles/RV32IC_Simulator.dir
-/Users/malekfarouk/Documents/Uni semesters/AUC Summer 24/Comp Org & Assembly Lang/project1/RV32IC-Simulator/cmake-build-debug/CMakeFiles/edit_cache.dir
-/Users/malekfarouk/Documents/Uni semesters/AUC Summer 24/Comp Org & Assembly Lang/project1/RV32IC-Simulator/cmake-build-debug/CMakeFiles/rebuild_cache.dir
