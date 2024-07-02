@@ -43,6 +43,7 @@ void instDecPrint(unsigned int instWord) {
     printPrefix(instPC, instWord);
     std::cout << std::dec; // Switch back to decimal for register identifiers
 
+    uType(instWord,s);
     if (opcode == 0x33) { // R Instructions
         rType(instWord,s);
     }
@@ -51,7 +52,9 @@ void instDecPrint(unsigned int instWord) {
         iType(instWord,s);
     }
     else if(opcode == 0x03)
+    {
         Load(instWord,s);
+    }
     else if(opcode == 0x23)
     {
         sType(instWord,s);
@@ -74,9 +77,6 @@ void instDecExe(unsigned int instWord) {
     unsigned int opcode = instWord & 0x0000007F;
     unsigned int instPC = exPc - 4;
     bool s=false;
-
-    // printPrefix(instPC, instWord);
-    // std::cout << std::dec; // Switch back to decimal for register identifiers
 
     if (opcode == 0x33) { // R Instructions
         rType(instWord,s);

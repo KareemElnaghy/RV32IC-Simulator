@@ -95,7 +95,7 @@ void rType(unsigned int instWord, bool s)
             break;
 
         default:
-            cout << "\tUnknown Instruction \n";
+            cout << "\tUnknown R Instruction \n";
     }
 }
 
