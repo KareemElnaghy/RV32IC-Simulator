@@ -33,37 +33,80 @@ void printPrefix(unsigned int instA, unsigned int instW) {
               << instA << "\t0x" << std::setw(8) << instW;
 }
 
-void instDecExe(unsigned int instWord) {
+void instDecPrint(unsigned int instWord) {
 
     unsigned int opcode = instWord & 0x0000007F;
-    unsigned int instPC = pc - 4;
+    unsigned int instPC = printPc - 4;
+    bool s=true;
+    int t;
 
     printPrefix(instPC, instWord);
     std::cout << std::dec; // Switch back to decimal for register identifiers
 
+    uType(instWord,s);
     if (opcode == 0x33) { // R Instructions
-        rType(instWord);
+        rType(instWord,s);
     }
     else if(opcode == 0x13)
     {
-        iType(instWord);
+        iType(instWord,s);
     }
     else if(opcode == 0x03)
-        Load(instWord);
+    {
+        Load(instWord,s);
+    }
     else if(opcode == 0x23)
     {
-        sType(instWord);
+        sType(instWord,s);
     }
     else if(opcode == 0x63)
     {
-        bType(instWord);
+        bType(instWord,s);
+    }
+    else if(opcode == 0x6F)
+    {
+        jType(instWord,s);
     }
     else cout<<"\tUnknown Instruction \n";
 }
 
 
+
+void instDecExe(unsigned int instWord) {
+
+    unsigned int opcode = instWord & 0x0000007F;
+    unsigned int instPC = exPc - 4;
+    bool s=false;
+
+    if (opcode == 0x33) { // R Instructions
+        rType(instWord,s);
+    }
+    else if(opcode == 0x13)
+    {
+        iType(instWord,s);
+    }
+    else if(opcode == 0x03)
+        Load(instWord,s);
+    else if(opcode == 0x23)
+    {
+        sType(instWord,s);
+    }
+    else if(opcode == 0x63)
+    {
+        exPc=bType(instWord,s);
+    }
+    else if(opcode == 0x6F)
+    {
+        exPc=jType(instWord,s);
+    }
+    else cout<<"\tUnknown Instruction \n";
+}
+
+
+
 int main(int argc, char *argv[]) {
-    unsigned int instWord = 0;  // Variable to store instruction word
+    unsigned int instWord1 = 0;
+    unsigned int instWord2 = 0; // Variable to store instruction word
     ifstream iFile;
     if (argc < 1) emitError("use: rvsim <machine_code_file_name> [data_section_file_name]\n");
 
@@ -78,12 +121,19 @@ int main(int argc, char *argv[]) {
 
         if (!iFile.read((char *) memory, fsize)) emitError("Cannot read from input file\n");
 
-        while (pc<MEMORY_SIZE && memory[pc]!= 0)  // Stops when PC reaches 32
-        {
-            instWord = (unsigned char) memory[pc] | (((unsigned char) memory[pc + 1]) << 8) |(((unsigned char) memory[pc + 2]) << 16) |(((unsigned char) memory[pc + 3]) << 24);
-            pc += 4;
-            instDecExe(instWord);
+        while (printPc < fsize || exPc < fsize) {
+            if (printPc < fsize) {
+                instWord1 = (unsigned char) memory[printPc] | (((unsigned char) memory[printPc + 1]) << 8) | (((unsigned char) memory[printPc + 2]) << 16) | (((unsigned char) memory[printPc + 3]) << 24);
+                printPc += 4;
+                instDecPrint(instWord1);
+            }
+            if (exPc < fsize) {
+                instWord2 = (unsigned char) memory[exPc] | (((unsigned char) memory[exPc + 1]) << 8) | (((unsigned char) memory[exPc + 2]) << 16) | (((unsigned char) memory[exPc + 3]) << 24);
+                exPc += 4;
+                instDecExe(instWord2);
+            }
         }
+
 
     }
     else emitError("Cannot access input file\n");
