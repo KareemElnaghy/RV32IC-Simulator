@@ -99,7 +99,7 @@ void instDecExe(unsigned int instWord) {
     {
         exPc=jType(instWord,s);
     }
-    else cout<<"\tUnknown Instruction \n";
+    //else cout<<"\tUnknown Instruction \n";
 }
 
 
