@@ -320,7 +320,7 @@ void iType(unsigned int instWord, bool s)
 }
 
 
-void sType(unsigned int instWord)
+void sType(unsigned int instWord, bool s)
 {
     unsigned int rs1, rs2, funct3;
     int32_t I_imm, address, temp;
@@ -338,22 +338,30 @@ void sType(unsigned int instWord)
 
     switch (funct3) {
         case 0:
+            if(s)
             cout << "\tSB\t" << registers[rs2].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
-            address = I_imm + registers[rs1].getDataU();
-            memory[address] = registers[rs2].getData() & 0xFF;
+            else {
+                address = I_imm + registers[rs1].getDataU();
+                memory[address] = registers[rs2].getData() & 0xFF;
+            }
             break;
         case 1:
+            if(s)
             cout << "\tSH\t" << registers[rs2].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
-            address = I_imm + registers[rs1].getDataU();
-            memory[address] = registers[rs2].getData() & 0xFF;
-            memory[address+1] = registers[rs2].getData() & 0xFF00;
+            else {
+                address = I_imm + registers[rs1].getDataU();
+                memory[address] = registers[rs2].getData() & 0xFF;
+                memory[address + 1] = registers[rs2].getData() & 0xFF00;
+            }
             break;
         case 2:
+            if(s)
             cout << "\tSW\t" << registers[rs2].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
-            address = I_imm + registers[rs1].getDataU();
-            for(int i = 0; i<4; i++)
-            {
-                memory[address+i] = (registers[rs2].getData() >> i*8) & 0xFF;
+            else {
+                address = I_imm + registers[rs1].getDataU();
+                for (int i = 0; i < 4; i++) {
+                    memory[address + i] = (registers[rs2].getData() >> i * 8) & 0xFF;
+                }
             }
             break;
 
