@@ -16,6 +16,7 @@ unsigned int exPc;
 unsigned char memory[MEMORY_SIZE];
 Register registers[NUM_REGISTERS];
 vector<string> output;
+bool exitProgram = 0;
 
 
 void rType(unsigned int instWord, bool s)
@@ -517,30 +518,44 @@ void Load(unsigned int instWord, bool s)
     }
 }
 
-void ecall(bool s)
+bool ecall(bool s)
 {
     if(s)
     {
         cout<<"\tECALL\t"<<endl;
+        return false;
     }
     else
     {
         if(registers[17].getDataU() == 10)
         {
-            exit(0);
+            s = true;
+            return false;
         }
         else if(registers[17].getDataU() == 1)
         {
             output.push_back(to_string(registers[10].getData()));
+            return false;
         }
         else if(registers[17].getDataU() == 4)
         {
             string str = "";
-            unsigned char* c = &memory[registers[10].getData()];
-            while (c != nullptr)
-                str += *c;
+            int i = 0;
+            unsigned int address = registers[10].getData();
+            while(memory[address+i] != '\0')
+            {
+                str += memory[address+i];
+                i++;
+            }
+
 
             output.push_back(str);
+            return true;
+        }
+        else
+        {
+            cout<<"\tUnknown Call Number \n";
+            return false;
         }
     }
 

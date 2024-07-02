@@ -86,34 +86,38 @@ void instDecExe(unsigned int instWord) {
     unsigned int instPC = exPc - 4;
     bool s=false;
 
-    if (opcode == 0x33) { // R Instructions
-        rType(instWord,s);
-    }
-    else if(opcode == 0x13)
+
+    if(!exitProgram)
     {
-        iType(instWord,s);
-    }
-    else if(opcode == 0x03)
-        Load(instWord,s);
-    else if(opcode == 0x23)
-    {
-        sType(instWord,s);
-    }
-    else if(opcode == 0x63)
-    {
-        exPc=bType(instWord,s);
-    }
-    else if(opcode == 0x6F)
-    {
-        exPc=jType(instWord,s);
-    }
-    else if(opcode == 0x37 || opcode == 0x17)
-    {
-       uType(instWord,s);
-    }
-    else if(opcode==0x73)
+        if (opcode == 0x33) { // R Instructions
+            rType(instWord,s);
+        }
+        else if(opcode == 0x13)
         {
-        ecall(s);
+            iType(instWord,s);
+        }
+        else if(opcode == 0x03)
+            Load(instWord,s);
+        else if(opcode == 0x23)
+        {
+            sType(instWord,s);
+        }
+        else if(opcode == 0x63)
+        {
+            exPc=bType(instWord,s);
+        }
+        else if(opcode == 0x6F)
+        {
+            exPc=jType(instWord,s);
+        }
+        else if(opcode == 0x37 || opcode == 0x17)
+        {
+            uType(instWord,s);
+        }
+        else if(opcode==0x73)
+        {
+            exitProgram = ecall(s);
+        }
     }
 }
 
@@ -154,5 +158,11 @@ int main(int argc, char *argv[]) {
     else emitError("Cannot access input file\n");
 
     printRegContent();
+
+    cout<<"Console Output"<<endl;
+   for(int i = 0; i<output.size(); i++)
+   {
+       cout<<output[i]<<endl;
+   }
 
 }
