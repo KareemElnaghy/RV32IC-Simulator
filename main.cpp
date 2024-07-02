@@ -71,6 +71,10 @@ void instDecPrint(unsigned int instWord) {
     {
         uType(instWord,s);
     }
+    else if(opcode==0x73)
+    {
+        ecall(s);
+    }
     else cout<<"\tUnknown Instruction \n";
 }
 
@@ -106,6 +110,10 @@ void instDecExe(unsigned int instWord) {
     else if(opcode == 0x37 || opcode == 0x17)
     {
        uType(instWord,s);
+    }
+    else if(opcode==0x73)
+        {
+        ecall(s);
     }
 }
 
