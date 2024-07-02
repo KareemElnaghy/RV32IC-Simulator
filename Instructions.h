@@ -413,7 +413,7 @@ void Load(unsigned int instWord, bool s)
             cout << "\tLW\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
         else {
             address = I_imm + registers[rs1].getData();
-            temp = memory[address] | (memory[address+1] << 8 ) (memory[address+2] << 16 ) (memory[address+3] << 24 );
+            temp = memory[address] | (memory[address+1] << 8 ) | (memory[address+2] << 16 ) | (memory[address+3] << 24 );
             registers[rd].setData(temp);
         }
         break;
