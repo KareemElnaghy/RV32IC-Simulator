@@ -75,8 +75,8 @@ void instDecExe(unsigned int instWord) {
     unsigned int instPC = exPc - 4;
     bool s=false;
 
-    printPrefix(instPC, instWord);
-    std::cout << std::dec; // Switch back to decimal for register identifiers
+    // printPrefix(instPC, instWord);
+    // std::cout << std::dec; // Switch back to decimal for register identifiers
 
     if (opcode == 0x33) { // R Instructions
         rType(instWord,s);
