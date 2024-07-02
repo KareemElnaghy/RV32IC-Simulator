@@ -12,6 +12,7 @@ void initialiseRegs()
     {
         registers[i] = Register(i);
     }
+    registers[2].setData(64*1024-1);
 }
 
 void printRegContent()
@@ -145,4 +146,5 @@ int main(int argc, char *argv[]) {
     else emitError("Cannot access input file\n");
 
     printRegContent();
+
 }
