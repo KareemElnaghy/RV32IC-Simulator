@@ -2,6 +2,8 @@
 // Created by Kareem Elnaghy on 6/29/24.
 //
 #include <iostream>
+#include <bitset>
+#include <cstdint>
 using namespace std;
 //Global Variables
 const int MEMORY_SIZE = 64*1024;
@@ -96,8 +98,6 @@ void iType(unsigned int instWord)
     I_imm = ((instWord >> 20) & 0x7FF);
     I_immU = ((instWord >> 20) & 0x7FF);
 
-
-
     switch (funct3) {
         case 0:
             cout << "\tADDI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << I_imm << "\n";
@@ -154,8 +154,47 @@ void iType(unsigned int instWord)
 
 void sType(unsigned int instWord)
 {
+    unsigned int rs1, rs2, funct3;
+    int32_t I_imm, address, temp;
 
+    funct3 = (instWord >> 12) & 0x00000007;
+    rs1 = (instWord >> 15) & 0x0000001F;
+    rs2 = (instWord >> 20) & 0x0000001F;
+    I_imm = (instWord >> 7) & 0x0000001F;
+    I_imm |= (instWord>>13) & 0x0007F000;
+
+    int signedBit = (I_imm >> 11) & 1;
+    if(signedBit == 1) {
+        I_imm|= 0xF000;
+    }
+
+    switch (funct3) {
+        case 0:
+            cout << "\tSB\t" << registers[rs2].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
+            address = I_imm + registers[rs1].getDataU();
+            memory[address] = registers[rs2].getData() & 0xFF;
+            break;
+        case 1:
+            cout << "\tSH\t" << registers[rs2].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
+            address = I_imm + registers[rs1].getDataU();
+            memory[address] = registers[rs2].getData() & 0xFF;
+            memory[address+1] = registers[rs2].getData() & 0xFF00;
+            break;
+        case 2:
+            cout << "\tSW\t" << registers[rs2].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
+            address = I_imm + registers[rs1].getDataU();
+            for(int i = 0; i<4; i++)
+            {
+                memory[address+i] = (registers[rs2].getData() >> i*8) & 0xFF;
+            }
+            break;
+
+        default:
+            cout << "\tUnknown Load Instruction \n";
+
+    }
 }
+
 void bType(unsigned int instWord)
 {
 
