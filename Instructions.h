@@ -339,7 +339,7 @@ void uType(unsigned int instWord, bool s) {
     }
 
     if(opcode == 0x37) {
-        if(s) cout << "\tLUI\t" << registers[rd].getABI() <<", " << (I_imm & 0x000FFFFF);
+        if(s) cout << "\tLUI\t" << registers[rd].getABI() <<", "<< "0x" << hex<< setw(5) << (I_imm & 0x000FFFFF)<<endl;
         else
         {tempU = I_imm << 12;
             registers[rd].setDataU(tempU);}
@@ -347,11 +347,8 @@ void uType(unsigned int instWord, bool s) {
 
     else if(opcode == 0x17) {
         if(s)
-            cout << "\tAUIPC\t" << registers[rd].getABI() <<", " << (I_imm & 0x000FFFFF);
+            cout << "\tAUIPC\t" << registers[rd].getABI() <<", "<< "0x" << hex<< setw(5) << (I_imm & 0x000FFFFF)<<endl;
         else{
-            if(s)
-                tempU = printPc + (I_imm << 12);
-            else
                 tempU = exPc + (I_imm << 12);
 
             registers[rd].setDataU(tempU);
