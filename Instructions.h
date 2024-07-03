@@ -265,6 +265,7 @@ int jType(unsigned int instWord, bool s)
     return r;
 }
 
+
 int JalrType(unsigned int instWord, bool s)
 {
     signed int instPC2 = exPc - 4;
@@ -290,17 +291,23 @@ int JalrType(unsigned int instWord, bool s)
         //cout << endl << "j_imm:" << j_imm << "   " << "instPC1:" << instPC1 << endl;
         cout << "\tJALR\t" << registers[rd].getABI() << ", " << "0x" << hex<< setw(12)<< J_imm + registers[rs1].getData() << endl;
     }
-    else {
+
+    else
+
+    {
         //registers[rd].setData(instPC2);
         r = J_imm + registers[rs1].getData();
+      //  cout<<endl<<"r:"<<r<<endl;
     }
 
     return r;
 }
 
+
 void iType(unsigned int instWord, bool s)
 {
-    unsigned int rd, rs1, funct3, funct7,shamt, I_immU;
+    unsigned int opcode, rd, rs1, funct3, funct7,shamt, I_immU;
+    opcode = instWord & 0x0000007F;
     int16_t I_imm;
     signed int temp;
     unsigned int tempU;
@@ -311,6 +318,7 @@ void iType(unsigned int instWord, bool s)
     shamt= (instWord >> 20) & 0x0000001F;
     I_imm = ((instWord >> 20) & 0xFFF);
     I_immU = ((instWord >> 20) & 0xFFF);
+    int r;
 
 
     int signedBit = (I_imm >> 11) & 1;
@@ -320,64 +328,77 @@ void iType(unsigned int instWord, bool s)
 
     switch (funct3) {
         case 0:
-            if(s)
-            cout << "\tADDI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF) << "\n";
-           else {
-                temp = registers[rs1].getData() + I_imm;
-                registers[rd].setData(temp);
+            if(opcode==0x13)
+            {
+                if (s)
+                    cout << "\tADDI\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << "0x"
+                         << hex << setw(3) << (I_imm & 0x00000FFF) << "\n";
+                else {
+                    temp = registers[rs1].getData() + I_imm;
+                    registers[rd].setData(temp);
+                }
             }
+
             break;
         case 2:
             if(s)
             cout << "\tSLTI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex << setw(3)<< (I_imm& 0x00000FFF) << "\n";
            else
             {temp= (registers[rs1].getData() < I_imm)? 1 : 0;
-            registers[rd].setData(temp);}
+            registers[rd].setData(temp);
+           }
             break;
         case 3:
             if(s)
             cout << "\tSLTIU\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(3)<< (I_immU& 0x00000FFF) << "\n";
            else{ temp= (registers[rs1].getData() < I_immU)? 1 : 0;
-            registers[rd].setData(temp);}
+            registers[rd].setData(temp);
+               }
             break;
         case 4:
             if(s)
             cout << "\tXORI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(3)<< (I_imm& 0x00000FFF) << "\n";
            else{ temp = registers[rs1].getData() ^ I_imm;
-            registers[rd].setData(temp);}
+            registers[rd].setData(temp);
+                }
             break;
         case 6:
             if(s)
             cout << "\tORI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(3)<< (I_imm& 0x00000FFF) << "\n";
 
            else{ temp = registers[rs1].getData() | I_imm;
-            registers[rd].setData(temp);}
+            registers[rd].setData(temp);
+               }
             break;
         case 7:
            if(s) cout << "\tANDI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(3)<< (I_imm& 0x00000FFF) << "\n";
             else
            {temp = registers[rs1].getData() & I_imm;
-            registers[rd].setData(temp);}
+            registers[rd].setData(temp);
+               }
             break;
         case 1:
             if(s)
             cout << "\tSLLI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(2)<< shamt << "\n";
             else{temp = registers[rs1].getData() << shamt;
-            registers[rd].setData(temp);}
+            registers[rd].setData(temp);
+                }
             break;
         case 5:
             if(funct7==0) {
                if(s)
                    cout << "\tSRLI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(2)<< shamt << "\n";
                 else{tempU = registers[rs1].getData() >> shamt;
-                registers[rd].setData(tempU);}
+                registers[rd].setData(tempU);
+                   }
             }
             else {
                if(s)
                 cout << "\tSRAI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(2)<< shamt << "\n";
               else
                {temp = registers[rs1].getData() >> shamt;
-                registers[rd].setData(temp);}
+                registers[rd].setData(temp);
+                  }
             }
             break;
 
@@ -566,7 +587,7 @@ bool ecall(bool s)
         if(registers[17].getDataU() == 10)
         {
             s = true;
-            return false;
+            return true;
         }
         else if(registers[17].getDataU() == 1)
         {
@@ -586,7 +607,7 @@ bool ecall(bool s)
 
 
             output.push_back(str);
-            return true;
+            return false;
         }
         else
         {
