@@ -246,6 +246,8 @@ int jType(unsigned int instWord, bool s)
     rd = (instWord >> 7) & 0x0000001F;
 
 
+
+
     j_imm = ((instWord >> 31) & 0x1) << 20;
     j_imm |= ((instWord >> 12) & 0xFF) << 12;
     j_imm |= ((instWord >> 20) & 0x1) << 11;
@@ -276,17 +278,15 @@ int jType(unsigned int instWord, bool s)
 int JalrType(unsigned int instWord, bool s)
 {
     signed int instPC2 = exPc - 4;
-    unsigned int rd, rs1, funct3, J_immU;
+    unsigned int rd, rs1;
     int16_t J_imm;
     signed int temp;
     unsigned int tempU;
     rd = (instWord >> 7) & 0x0000001F;
-    funct3 = (instWord >> 12) & 0x00000007;
     rs1 = (instWord >> 15) & 0x0000001F;
 
     int r;
     J_imm = ((instWord >> 20) & 0xFFF);
-   // J_immU = ((instWord >> 20) & 0xFFF);
 
 
     int signedBit = (J_imm >> 11) & 1;
@@ -294,18 +294,34 @@ int JalrType(unsigned int instWord, bool s)
         J_imm|= 0xF000;
     }
 
-    if(s) {
-        //cout << endl << "j_imm:" << j_imm << "   " << "instPC1:" << instPC1 << endl;
-        cout << "\tJALR\t" << registers[rd].getABI() << ", " << "0x" << hex<< setw(12)<< J_imm + registers[rs1].getData() << endl;
-    }
+        if(rd==0)
+        {
+            if (s)
+            {
+                cout << "\tJALR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", "<< "0x" << hex << setw(3)<<
+                     ( J_imm & 0x00000FFF)<<endl;
+            }
+            else
+            {
+                r = J_imm + registers[rs1].getData() ;
+            }
 
-    else
+        }
+        else if(rd!=0)
+        {
+            if (s)
+            {
+                cout << "\tJALR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", "<< "0x" << hex << setw(3)<<
+                     ( J_imm & 0x00000FFF)<<endl;
+            }
+            else
+            {
+                registers[rd].setData(instPC2+4);
+                r = J_imm + registers[rs1].getData() ;
 
-    {
-        registers[rd].setData(instPC2);
-        r = J_imm + registers[rs1].getData();
-      //  cout<<endl<<"r:"<<r<<endl;
-    }
+            }
+        }
+
 
     return r;
 }
@@ -493,7 +509,7 @@ void uType(unsigned int instWord, bool s) {
         if(s)
             cout << "\tAUIPC\t" << registers[rd].getABI() <<", "<< "0x" << hex<< setw(5) << (I_imm & 0x000FFFFF)<<endl;
         else{
-                tempU = exPc + (I_imm << 12);
+                tempU = exPc + (I_imm << 12)-4;
 
             registers[rd].setDataU(tempU);
 
