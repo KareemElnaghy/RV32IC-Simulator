@@ -239,6 +239,8 @@ int jType(unsigned int instWord, bool s)
     rd = (instWord >> 7) & 0x0000001F;
 
 
+
+
     j_imm = ((instWord >> 31) & 0x1) << 20;
     j_imm |= ((instWord >> 12) & 0xFF) << 12;
     j_imm |= ((instWord >> 20) & 0x1) << 11;
@@ -269,7 +271,7 @@ int jType(unsigned int instWord, bool s)
 int JalrType(unsigned int instWord, bool s)
 {
     signed int instPC2 = exPc - 4;
-    unsigned int rd, rs1, funct3, J_immU;
+    unsigned int rd, rs1, funct3, J_immU,opcode;
     int16_t J_imm;
     signed int temp;
     unsigned int tempU;
@@ -287,18 +289,62 @@ int JalrType(unsigned int instWord, bool s)
         J_imm|= 0xF000;
     }
 
-    if(s) {
-        //cout << endl << "j_imm:" << j_imm << "   " << "instPC1:" << instPC1 << endl;
-        cout << "\tJALR\t" << registers[rd].getABI() << ", " << "0x" << hex<< setw(12)<< J_imm + registers[rs1].getData() << endl;
-    }
 
-    else
-
+    opcode=memory[J_imm + registers[rs1].getData()] & 0x0000007F;
+   // cout << endl << "rd:" << rd << "   " << "instPC1:" << instPC2 <<endl;
+    if(opcode!=0x67)
     {
-        //registers[rd].setData(instPC2);
-        r = J_imm + registers[rs1].getData();
-      //  cout<<endl<<"r:"<<r<<endl;
+        if (s)
+        {
+            cout << "\tJALR\t" << registers[rd].getABI() << ", " << "0x" << hex << setw(12)
+                 << J_imm + registers[rs1].getData() << endl;
+        }
+        else
+        {
+            registers[rd].setData(instPC2);
+            r = J_imm + registers[rs1].getData();
+        }
     }
+    else
+    {
+        //cout<<"hi"<<endl;
+        if(rd==0)
+        {
+            //cout<<"hi"<<endl;
+            if (s)
+            {
+                cout << "\tJALR\t" << registers[rd].getABI() << ", " << "0x" << hex << setw(12)
+                     << J_imm + registers[rs1].getData() +4 << endl;
+            }
+            else
+            {
+                registers[rd].setData(instPC2+4);
+                r = J_imm + registers[rs1].getData() + 4;
+                cout<<"fuck bersy"<<endl;
+            }
+
+        }
+        else if(rd!=0)
+        {
+            if (s)
+            {
+                cout << "\tJALR\t" << registers[rd].getABI() << ", " << "0x" << hex << setw(12)
+                     << J_imm + registers[rs1].getData() -4 << endl;
+            }
+            else
+            {
+
+                //10        //8
+                //14
+                //cout << endl << "rd:" << rd << "   " << "instPC1:" << instPC2 <<endl;
+                registers[rd].setData(instPC2-4);
+                r = J_imm + registers[rs1].getData() - 4;
+                // cout<<endl<<"r:"<<r<<endl;
+                //cout<<"fuck malek"<<endl;
+            }
+        }
+    }
+
 
     return r;
 }
