@@ -257,12 +257,46 @@ int jType(unsigned int instWord, bool s)
        //cout << endl << "j_imm:" << j_imm << "   " << "instPC1:" << instPC1 << endl;
         cout << "\tJAL\t" << registers[rd].getABI() << ", " << "0x" << hex<< setw(13)<< j_imm + instPC1 << endl;
     }
-    else
-        r=j_imm + instPC2;
+    else {
+        registers[rd].setData(exPc);
+        r = j_imm + instPC2;
+    }
 
     return r;
 }
 
+int JalrType(unsigned int instWord, bool s)
+{
+    signed int instPC2 = exPc - 4;
+    unsigned int rd, rs1, funct3, J_immU;
+    int16_t J_imm;
+    signed int temp;
+    unsigned int tempU;
+    rd = (instWord >> 7) & 0x0000001F;
+    funct3 = (instWord >> 12) & 0x00000007;
+    rs1 = (instWord >> 15) & 0x0000001F;
+
+    int r;
+    J_imm = ((instWord >> 20) & 0xFFF);
+   // J_immU = ((instWord >> 20) & 0xFFF);
+
+
+    int signedBit = (J_imm >> 11) & 1;
+    if(signedBit == 1) {
+        J_imm|= 0xF000;
+    }
+
+    if(s) {
+        //cout << endl << "j_imm:" << j_imm << "   " << "instPC1:" << instPC1 << endl;
+        cout << "\tJALR\t" << registers[rd].getABI() << ", " << "0x" << hex<< setw(12)<< J_imm + registers[rs1].getData() << endl;
+    }
+    else {
+        //registers[rd].setData(instPC2);
+        r = J_imm + registers[rs1].getData();
+    }
+
+    return r;
+}
 
 void iType(unsigned int instWord, bool s)
 {
@@ -404,9 +438,7 @@ void sType(unsigned int instWord, bool s)
     }
 }
 
-void bType(unsigned int instWord)
-{
-}
+
 
 void uType(unsigned int instWord, bool s) {
     unsigned int rd, opcode;
