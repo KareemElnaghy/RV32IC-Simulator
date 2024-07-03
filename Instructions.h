@@ -8,7 +8,7 @@
 #include <vector>
 using namespace std;
 //Global Variables
-const int MEMORY_SIZE = 64*1024;
+const int MEMORY_SIZE = 128*1024;
 const int NUM_REGISTERS = 32;
 
 signed int printPc;
@@ -271,17 +271,15 @@ int jType(unsigned int instWord, bool s)
 int JalrType(unsigned int instWord, bool s)
 {
     signed int instPC2 = exPc - 4;
-    unsigned int rd, rs1, funct3, J_immU,opcode;
+    unsigned int rd, rs1;
     int16_t J_imm;
     signed int temp;
     unsigned int tempU;
     rd = (instWord >> 7) & 0x0000001F;
-    funct3 = (instWord >> 12) & 0x00000007;
     rs1 = (instWord >> 15) & 0x0000001F;
 
     int r;
     J_imm = ((instWord >> 20) & 0xFFF);
-   // J_immU = ((instWord >> 20) & 0xFFF);
 
 
     int signedBit = (J_imm >> 11) & 1;
@@ -289,38 +287,16 @@ int JalrType(unsigned int instWord, bool s)
         J_imm|= 0xF000;
     }
 
-
-    opcode=memory[J_imm + registers[rs1].getData()] & 0x0000007F;
-   // cout << endl << "rd:" << rd << "   " << "instPC1:" << instPC2 <<endl;
-    if(opcode!=0x67)
-    {
-        if (s)
-        {
-            cout << "\tJALR\t" << registers[rd].getABI() << ", " << "0x" << hex << setw(12)
-                 << J_imm + registers[rs1].getData() << endl;
-        }
-        else
-        {
-            registers[rd].setData(instPC2);
-            r = J_imm + registers[rs1].getData();
-        }
-    }
-    else
-    {
-        //cout<<"hi"<<endl;
         if(rd==0)
         {
-            //cout<<"hi"<<endl;
             if (s)
             {
-                cout << "\tJALR\t" << registers[rd].getABI() << ", " << "0x" << hex << setw(12)
-                     << J_imm + registers[rs1].getData() +4 << endl;
+                cout << "\tJALR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", "<< "0x" << hex << setw(3)<<
+                     ( J_imm & 0x00000FFF)<<endl;
             }
             else
             {
-                registers[rd].setData(instPC2+4);
-                r = J_imm + registers[rs1].getData() + 4;
-                cout<<"fuck bersy"<<endl;
+                r = J_imm + registers[rs1].getData() ;
             }
 
         }
@@ -328,22 +304,16 @@ int JalrType(unsigned int instWord, bool s)
         {
             if (s)
             {
-                cout << "\tJALR\t" << registers[rd].getABI() << ", " << "0x" << hex << setw(12)
-                     << J_imm + registers[rs1].getData() -4 << endl;
+                cout << "\tJALR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", "<< "0x" << hex << setw(3)<<
+                     ( J_imm & 0x00000FFF)<<endl;
             }
             else
             {
+                registers[rd].setData(instPC2+4);
+                r = J_imm + registers[rs1].getData() ;
 
-                //10        //8
-                //14
-                //cout << endl << "rd:" << rd << "   " << "instPC1:" << instPC2 <<endl;
-                registers[rd].setData(instPC2-4);
-                r = J_imm + registers[rs1].getData() - 4;
-                // cout<<endl<<"r:"<<r<<endl;
-                //cout<<"fuck malek"<<endl;
             }
         }
-    }
 
 
     return r;
@@ -532,7 +502,7 @@ void uType(unsigned int instWord, bool s) {
         if(s)
             cout << "\tAUIPC\t" << registers[rd].getABI() <<", "<< "0x" << hex<< setw(5) << (I_imm & 0x000FFFFF)<<endl;
         else{
-                tempU = exPc + (I_imm << 12);
+                tempU = exPc + (I_imm << 12)-4;
 
             registers[rd].setDataU(tempU);
 

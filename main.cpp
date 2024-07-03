@@ -12,7 +12,7 @@ void initialiseRegs()
     {
         registers[i] = Register(i);
     }
-    registers[2].setData(64*1024-1);
+    registers[2].setData(128*1024-1);
 }
 
 void printRegContent()
