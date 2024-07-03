@@ -8,16 +8,23 @@
 #include <vector>
 using namespace std;
 //Global Variables
-const int MEMORY_SIZE = 64*1024;
+const int MEMORY_SIZE = 128*1024;
 const int NUM_REGISTERS = 32;
 
 signed int printPc;
 signed int exPc;
+int32_t dataAddr = 0x00010000;
+int32_t textAddr =0x0;
 unsigned char memory[MEMORY_SIZE];
 Register registers[NUM_REGISTERS];
 vector<string> output;
-bool exitProgram = 0;
+bool exitProgram = false;
 
+void emitError(const string& msg)
+{
+    cout<<msg;
+    exit(0);
+}
 
 void rType(unsigned int instWord, bool s)
 {
@@ -295,7 +302,7 @@ int JalrType(unsigned int instWord, bool s)
     else
 
     {
-        //registers[rd].setData(instPC2);
+        registers[rd].setData(instPC2);
         r = J_imm + registers[rs1].getData();
       //  cout<<endl<<"r:"<<r<<endl;
     }
@@ -599,14 +606,16 @@ bool ecall(bool s)
             string str = "";
             int i = 0;
             unsigned int address = registers[10].getData();
-            while(memory[address+i] != '\0')
-            {
-                str += memory[address+i];
-                i++;
-            }
+            if(address > MEMORY_SIZE) emitError("Bad Access: Address does not exist");
+
+                while (memory[address + i] != '\0') {
+                    str += memory[address + i];
+                    i++;
+                }
 
 
-            output.push_back(str);
+                output.push_back(str);
+
             return false;
         }
         else

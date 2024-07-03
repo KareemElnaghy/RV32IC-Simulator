@@ -22,11 +22,6 @@ void printRegContent()
         registers[i].printRegData();
     }
 };
-void emitError(string msg)
-{
-    cout<<msg;
-    exit(0);
-}
 
 
 void printPrefix(unsigned int instA, unsigned int instW) {
@@ -141,13 +136,13 @@ int main(int argc, char *argv[]) {
         iFile.open(argv[2], ios::in | ios::binary | ios::ate);
 
         if (iFile.is_open()) {
-            initialiseRegs();
-            int fsize = iFile.tellg();
 
+            int fsize = iFile.tellg();
+            if(fsize > 64*1024) emitError("Data section file is larger than data memory");
             iFile.seekg(0, iFile.beg);
 
             if (!iFile.read((char *) (memory + dataAddr), fsize)) emitError("Cannot read from data file\n");
-        } else emitError("Cannot access input file\n");
+        } else emitError("Cannot read from data file\n");
         iFile.close();
     }
 
@@ -157,10 +152,10 @@ int main(int argc, char *argv[]) {
     {
         initialiseRegs();
         int fsize = iFile.tellg();
-
+        if(fsize > 64*1024) emitError("machine code file is larger than data memory");
         iFile.seekg(0, iFile.beg);
 
-        if (!iFile.read((char *) memory, fsize)) emitError("Cannot read from input file\n");
+        if (!iFile.read((char *) (memory + textAddr), fsize)) emitError("Cannot read from machine code file\n");
 
         while (printPc < fsize || exPc < fsize) {
             if (printPc < fsize) {
@@ -178,7 +173,7 @@ int main(int argc, char *argv[]) {
 
     }
     else emitError("Cannot access input file\n");
-   // if(memory[0x10010000] != '\0') cout<<"TEST: "<<memory[0x10010000];
+
     printRegContent();
 
     cout<<"\n==============================Console Output=============================="<<endl;
