@@ -12,7 +12,7 @@ void initialiseRegs()
     {
         registers[i] = Register(i);
     }
-    registers[2].setData(64*1024-1);
+    registers[2].setData(64*1024-1);    // initialise stack pointer to point to last element of the memory
 }
 
 void printRegContent()
@@ -137,6 +137,20 @@ int main(int argc, char *argv[]) {
     ifstream iFile;
     if (argc < 1) emitError("use: rvsim <machine_code_file_name> [data_section_file_name]\n");
 
+    if(argv[2] != nullptr) {
+        iFile.open(argv[2], ios::in | ios::binary | ios::ate);
+
+        if (iFile.is_open()) {
+            initialiseRegs();
+            int fsize = iFile.tellg();
+
+            iFile.seekg(0, iFile.beg);
+
+            if (!iFile.read((char *) (memory + dataAddr), fsize)) emitError("Cannot read from data file\n");
+        } else emitError("Cannot access input file\n");
+        iFile.close();
+    }
+
     iFile.open(argv[1], ios::in | ios::binary | ios::ate);
 
     if (iFile.is_open())
@@ -164,13 +178,12 @@ int main(int argc, char *argv[]) {
 
     }
     else emitError("Cannot access input file\n");
-
+   // if(memory[0x10010000] != '\0') cout<<"TEST: "<<memory[0x10010000];
     printRegContent();
 
-    cout<<"Console Output"<<endl;
-   for(int i = 0; i<output.size(); i++)
-   {
-       cout<<output[i]<<endl;
-   }
+    cout<<"\n==============================Console Output=============================="<<endl;
+    for (const auto &i: output)
+        cout << i << endl;
+
 
 }
