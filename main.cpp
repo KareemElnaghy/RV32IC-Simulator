@@ -120,7 +120,7 @@ void instDecExe(unsigned int instWord) {
         }
         else if(opcode == 0x67)
         {
-            exPc= JalrType(instWord,s);
+            exPc=JalrType(instWord,s);
         }
         else if(opcode==0x73)
         {
