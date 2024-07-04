@@ -378,12 +378,25 @@ void instDecExe(unsigned int instWord) {
         printIntInst(rd, rs1, rs2, opcode, funct3, funct7, b_imm, I_imm, I_immU, S_imm, j_imm, J_imm, U_imm, instPC1, shamt);
     }
 }
+void compressPrint(unsigned int instHalf)
+{
+    unsigned int instPC = Pc - 2;
+    unsigned int opcode = instHalf & 0x3;
+    unsigned int rd, rs1,funct3;
+}
 
+
+void compressLog(unsigned int instHalf)
+{
+    unsigned int instPC = Pc - 2;
+    unsigned int rd, rs1,funct3;
+}
 
 
 int main(int argc, char *argv[]) {
     unsigned int instWord1 = 0;
     unsigned int instWord2 = 0; // Variable to store instruction word
+    unsigned int check;
     ifstream iFile;
     if (argc < 1) emitError("use: rvsim <machine_code_file_name> [data_section_file_name]\n");
 
@@ -414,9 +427,21 @@ int main(int argc, char *argv[]) {
         cout<<"translate"<<endl;
         while (Pc < fsize || Pc < fsize) {
             if (Pc < fsize) {
-                instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
-                Pc += 4;
-                instDecPrint(instWord1);
+                check=(unsigned char) memory[Pc];
+                if(check&3==3)
+                {
+                    instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
+                    Pc += 4;
+                    instDecPrint(instWord1);
+                }
+                else
+                {
+                    instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
+                    Pc += 2;
+                    compressPrint(instWord1);
+
+                }
+
             }
 
         }
@@ -426,9 +451,20 @@ int main(int argc, char *argv[]) {
         while (Pc < fsize || Pc < fsize)
         {
             if (Pc < fsize) {
-                instWord2 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
-                Pc += 4;
-                instDecExe(instWord2);
+                check=(unsigned char) memory[Pc];
+                if(check&3==3)
+                {
+                    instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
+                    Pc += 4;
+                    instDecExe(instWord1);
+                }
+                else
+                {
+                    instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
+                    Pc += 2;
+                    compressLog(instWord1);
+
+                }
             }
         }
 
