@@ -436,7 +436,7 @@ int main(int argc, char *argv[]) {
                 }
                 else
                 {
-                    instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
+                    instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) ;
                     Pc += 2;
                     compressPrint(instWord1);
 
@@ -460,7 +460,7 @@ int main(int argc, char *argv[]) {
                 }
                 else
                 {
-                    instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
+                    instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) ;
                     Pc += 2;
                     compressLog(instWord1);
 
