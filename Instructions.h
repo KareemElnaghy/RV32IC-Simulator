@@ -11,8 +11,7 @@ using namespace std;
 const int MEMORY_SIZE = 128*1024;
 const int NUM_REGISTERS = 32;
 
-signed int printPc;
-signed int exPc;
+signed int Pc;
 int32_t dataAddr = 0x00010000;
 int32_t textAddr =0x0;
 unsigned char memory[MEMORY_SIZE];
@@ -40,69 +39,79 @@ void rType(unsigned int instWord, bool s)
     {
         case 0:
             if (funct7 == 32) {
-                if(s)
                 cout << "\tSUB\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-                else
+
+                if(!s)
+
                 registers[rd].setData(registers[rs1].getData() - registers[rs2].getData());
             } else {
-                if(s)
                 cout << "\tADD\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-                else
+
+                if(!s)
+
                     registers[rd].setDataU(registers[rs1].getDataU() + registers[rs2].getDataU());
             }
             break;
 
         case 1:
-            if(s)
             cout << "\tSLL\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-            else
+
+            if(!s)
+
                 registers[rd].setData(registers[rs1].getData() << registers[rs2].getData());
             break;
         case 2:
-            if(s)
             cout << "\tSLT\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
+
+           // if(s)
 
 
         case 3:
-            if(s)
             cout << "\tSLTU\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
 
+           // if(s)
+
         case 4:
-            if(s)
             cout << "\tXOR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-            else
+
+            if(!s)
+
                 registers[rd].setData(registers[rs1].getData() ^ registers[rs2].getData());
             break;
 
         case 5:
             if(funct7 == 32)
             {
-                if(s)
                 cout << "\tSRA\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-               else {
+
+                if(!s)
+                {
                     int temp = registers[rs1].getData();
                     registers[rd].setData(temp >> registers[rs2].getDataU());
                 }
             }
             else
             {
-                if(s)
                 cout << "\tSRL\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-               else
+
+                if(!s)
+
                    registers[rd].setData(registers[rs1].getData() >> registers[rs2].getData());
                 break;
             }
 
         case 6:
-            if(s)
             cout << "\tOR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-            else
+
+            if(!s)
+
                 registers[rd].setData(registers[rs1].getData() | registers[rs2].getData());
             break;
         case 7:
-           if(s)
             cout << "\tAND\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-            else
+
+            if(!s)
+
                 registers[rd].setData(registers[rs1].getData() & registers[rs2].getData());
             break;
 
@@ -115,8 +124,8 @@ int bType(unsigned int instWord, bool s) {
 
     unsigned int rs1, rs2, funct3;
     int16_t b_imm;
-    signed int instPC1 = printPc - 4;
-    signed int instPC2 = exPc - 4;
+    signed int instPC1 = Pc - 4;
+
     int r;
 
 
@@ -142,86 +151,80 @@ int bType(unsigned int instWord, bool s) {
         switch (funct3)
         {
         case 0:
-        if (s)
-        {
-        cout << "\tBEQ\t" << registers[rs1].getABI() << ", " << registers[rs2].getABI() << ", " << "0x" << hex<< setw(13) << b_imm + instPC1 << "\n";
-        }
-        else
+            cout << "\tBEQ\t" << registers[rs1].getABI() << ", " << registers[rs2].getABI() << ", " << "0x" << hex<< setw(13) << b_imm + instPC1 << "\n";
+
+                if (!s)
+
         {
         if (registers[rs1].getData() == registers[rs2].getData())
-        r = b_imm + instPC2;
+        r = b_imm + instPC1;
         else
-        r = exPc;
+        r = Pc;
         }
         break;
 
         case 1:
-        if (s)
-        {
-        cout << "\tBNE\t" << registers[rs1].getABI() << ", " << registers[rs2].getABI() << ", " << "0x" << hex<< setw(13)<< b_imm + instPC1 << "\n";
-        }
-        else
+            cout << "\tBNE\t" << registers[rs1].getABI() << ", " << registers[rs2].getABI() << ", " << "0x" << hex<< setw(13)<< b_imm + instPC1 << "\n";
+
+                if (!s)
+
         {
         if (registers[rs1].getData() != registers[rs2].getData())
-        r = b_imm + instPC2;
+        r = b_imm + instPC1;
         else
-        r = exPc;
+        r = Pc;
         }
         break;
 
         case 4:
-        if (s)
-        {
-        cout << "\tBLT\t" << registers[rs1].getABI() << ", " << registers[rs2].getABI() << ", " << "0x" << hex<< setw(13) << b_imm + instPC1 << "\n";
-        }
-        else
+            cout << "\tBLT\t" << registers[rs1].getABI() << ", " << registers[rs2].getABI() << ", " << "0x" << hex<< setw(13) << b_imm + instPC1 << "\n";
+
+                if (!s)
+
         {
         if (registers[rs1].getData() < registers[rs2].getData())
-        r = b_imm + instPC2;
+        r = b_imm + instPC1;
         else
-        r = exPc;
+        r = Pc;
         }
         break;
 
         case 5:
-        if (s)
-        {
-        cout << "\tBGE\t" << registers[rs1].getABI() << ", " << registers[rs2].getABI() << ", " << "0x" << hex<< setw(13) << b_imm + instPC1 << "\n";
-        }
-        else
+            cout << "\tBGE\t" << registers[rs1].getABI() << ", " << registers[rs2].getABI() << ", " << "0x" << hex<< setw(13) << b_imm + instPC1 << "\n";
+
+                if (!s)
+
+
         {
         if (registers[rs1].getData() >= registers[rs2].getData())
-        r = b_imm + instPC2;
+        r = b_imm + instPC1;
         else
-        r = exPc;
+        r = Pc;
         }
         break;
 
         case 6:
-        if (s)
-        {
-        cout << "\tBLTU\t" << registers[rs1].getABI() << ", " << registers[rs2].getABI() << ", " << "0x" << hex<< setw(13) << b_imm + instPC1 << "\n";
-        }
-        else
+            cout << "\tBLTU\t" << registers[rs1].getABI() << ", " << registers[rs2].getABI() << ", " << "0x" << hex<< setw(13) << b_imm + instPC1 << "\n";
+
+                if (!s)
+
         {
         if (registers[rs1].getData() < registers[rs2].getData())
-        r = b_imm + instPC2;
+        r = b_imm + instPC1;
         else
-        r = exPc;
+        r = Pc;
         }
         break;
 
         case 7:
-        if (s)
-        {
-        cout << "\tBGEU\t" << registers[rs1].getABI() << ", " << registers[rs2].getABI() << ", " << "0x" << hex<< setw(13) << b_imm + instPC1 << "\n";
-        }
-        else
+            cout << "\tBGEU\t" << registers[rs1].getABI() << ", " << registers[rs2].getABI() << ", " << "0x" << hex<< setw(13) << b_imm + instPC1 << "\n";
+            if (!s)
+
         {
         if (registers[rs1].getData() >= registers[rs2].getData())
-        r = b_imm + instPC2;
+        r = b_imm + instPC1;
         else
-        r = exPc ;
+        r = Pc ;
         }
         break;
 
@@ -239,8 +242,8 @@ int jType(unsigned int instWord, bool s)
 {
     unsigned int rd;
     int16_t j_imm;
-    signed int instPC1 = printPc - 4;
-    signed int instPC2 = exPc - 4;
+    signed int instPC1 = Pc - 4;
+
      int r;
 
     rd = (instWord >> 7) & 0x0000001F;
@@ -261,14 +264,11 @@ int jType(unsigned int instWord, bool s)
         j_imm|= 0xE000;
     }
 
+    cout << "\tJAL\t" << registers[rd].getABI() << ", " << "0x" << hex<< setw(13)<< j_imm + instPC1 << endl;
 
-    if(s) {
-       //cout << endl << "j_imm:" << j_imm << "   " << "instPC1:" << instPC1 << endl;
-        cout << "\tJAL\t" << registers[rd].getABI() << ", " << "0x" << hex<< setw(13)<< j_imm + instPC1 << endl;
-    }
-    else {
-        registers[rd].setData(exPc);
-        r = j_imm + instPC2;
+    if(!s)  {
+        registers[rd].setData(Pc);
+        r = j_imm + instPC1;
     }
 
     return r;
@@ -277,7 +277,7 @@ int jType(unsigned int instWord, bool s)
 
 int JalrType(unsigned int instWord, bool s)
 {
-    signed int instPC2 = exPc - 4;
+    signed int instPC1 = Pc - 4;
     unsigned int rd, rs1;
     int16_t J_imm;
     signed int temp;
@@ -296,12 +296,9 @@ int JalrType(unsigned int instWord, bool s)
 
         if(rd==0)
         {
-            if (s)
-            {
-                cout << "\tJALR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", "<< "0x" << hex << setw(3)<<
-                     ( J_imm & 0x00000FFF)<<endl;
-            }
-            else
+            cout << "\tJALR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", "<< "0x" << hex << setw(3)<<
+                 ( J_imm & 0x00000FFF)<<endl;
+            if (!s)
             {
                 r = J_imm + registers[rs1].getData() ;
             }
@@ -309,14 +306,11 @@ int JalrType(unsigned int instWord, bool s)
         }
         else if(rd!=0)
         {
-            if (s)
+            cout << "\tJALR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", "<< "0x" << hex << setw(3)<<
+                 ( J_imm & 0x00000FFF)<<endl;
+            if (!s)
             {
-                cout << "\tJALR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", "<< "0x" << hex << setw(3)<<
-                     ( J_imm & 0x00000FFF)<<endl;
-            }
-            else
-            {
-                registers[rd].setData(instPC2+4);
+                registers[rd].setData(instPC1+4);
                 r = J_imm + registers[rs1].getData() ;
 
             }
@@ -353,72 +347,76 @@ void iType(unsigned int instWord, bool s)
         case 0:
             if(opcode==0x13)
             {
-                if (s)
-                    cout << "\tADDI\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << "0x"
-                         << hex << setw(3) << (I_imm & 0x00000FFF) << "\n";
-                else {
+                cout << "\tADDI\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << "0x"
+                     << hex << setw(3) << (I_imm & 0x00000FFF) << "\n";
+                if (!s)
+                {
                     temp = registers[rs1].getData() + I_imm;
                     registers[rd].setData(temp);
                 }
+
             }
 
             break;
         case 2:
-            if(s)
             cout << "\tSLTI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex << setw(3)<< (I_imm& 0x00000FFF) << "\n";
-           else
+
+            if(!s)
             {temp= (registers[rs1].getData() < I_imm)? 1 : 0;
             registers[rd].setData(temp);
            }
             break;
         case 3:
-            if(s)
             cout << "\tSLTIU\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(3)<< (I_immU& 0x00000FFF) << "\n";
-           else{ temp= (registers[rs1].getData() < I_immU)? 1 : 0;
+            if(!s)
+           { temp= (registers[rs1].getData() < I_immU)? 1 : 0;
             registers[rd].setData(temp);
                }
             break;
         case 4:
-            if(s)
             cout << "\tXORI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(3)<< (I_imm& 0x00000FFF) << "\n";
-           else{ temp = registers[rs1].getData() ^ I_imm;
+
+            if(!s)
+           { temp = registers[rs1].getData() ^ I_imm;
             registers[rd].setData(temp);
                 }
             break;
         case 6:
-            if(s)
             cout << "\tORI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(3)<< (I_imm& 0x00000FFF) << "\n";
 
-           else{ temp = registers[rs1].getData() | I_imm;
+            if(!s)
+           { temp = registers[rs1].getData() | I_imm;
             registers[rd].setData(temp);
                }
             break;
         case 7:
-           if(s) cout << "\tANDI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(3)<< (I_imm& 0x00000FFF) << "\n";
-            else
+           cout << "\tANDI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(3)<< (I_imm& 0x00000FFF) << "\n";
+            if(!s)
            {temp = registers[rs1].getData() & I_imm;
             registers[rd].setData(temp);
                }
             break;
         case 1:
-            if(s)
             cout << "\tSLLI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(2)<< shamt << "\n";
-            else{temp = registers[rs1].getData() << shamt;
+
+            if(!s)
+            {temp = registers[rs1].getData() << shamt;
             registers[rd].setData(temp);
                 }
             break;
         case 5:
             if(funct7==0) {
-               if(s)
-                   cout << "\tSRLI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(2)<< shamt << "\n";
-                else{tempU = registers[rs1].getData() >> shamt;
+                cout << "\tSRLI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(2)<< shamt << "\n";
+
+                if(!s)
+                {tempU = registers[rs1].getData() >> shamt;
                 registers[rd].setData(tempU);
                    }
             }
             else {
-               if(s)
                 cout << "\tSRAI\t" << registers[rd].getABI() <<", " << registers[rs1].getABI() <<", " << "0x" << hex<< setw(2)<< shamt << "\n";
-              else
+
+                if(!s)
                {temp = registers[rs1].getData() >> shamt;
                 registers[rd].setData(temp);
                   }
@@ -449,26 +447,29 @@ void sType(unsigned int instWord, bool s)
 
     switch (funct3) {
         case 0:
-            if(s)
             cout << "\tSB\t" << registers[rs2].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
-            else {
+
+            if(!s)
+            {
                 address = I_imm + registers[rs1].getDataU();
                 memory[address] = registers[rs2].getData() & 0xFF;
             }
             break;
         case 1:
-            if(s)
             cout << "\tSH\t" << registers[rs2].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
-            else {
+
+            if(!s)
+            {
                 address = I_imm + registers[rs1].getDataU();
                 memory[address] = registers[rs2].getData() & 0xFF;
                 memory[address + 1] = registers[rs2].getData() & 0xFF00;
             }
             break;
         case 2:
-            if(s)
             cout << "\tSW\t" << registers[rs2].getABI() <<", " << I_imm<< "(" << registers[rs1].getABI() << ")"<<"\n";
-            else {
+
+            if(!s)
+             {
                 address = I_imm + registers[rs1].getDataU();
                 for (int i = 0; i < 4; i++) {
                     memory[address + i] = (registers[rs2].getData() >> i * 8) & 0xFF;
@@ -499,17 +500,18 @@ void uType(unsigned int instWord, bool s) {
     }
 
     if(opcode == 0x37) {
-        if(s) cout << "\tLUI\t" << registers[rd].getABI() <<", "<< "0x" << hex<< setw(5) << (I_imm & 0x000FFFFF)<<endl;
-        else
+        cout << "\tLUI\t" << registers[rd].getABI() <<", "<< "0x" << hex<< setw(5) << (I_imm & 0x000FFFFF)<<endl;
+        if(!s)
         {tempU = I_imm << 12;
             registers[rd].setDataU(tempU);}
     }
 
     else if(opcode == 0x17) {
-        if(s)
-            cout << "\tAUIPC\t" << registers[rd].getABI() <<", "<< "0x" << hex<< setw(5) << (I_imm & 0x000FFFFF)<<endl;
-        else{
-                tempU = exPc + (I_imm << 12)-4;
+        cout << "\tAUIPC\t" << registers[rd].getABI() <<", "<< "0x" << hex<< setw(5) << (I_imm & 0x000FFFFF)<<endl;
+
+        if(!s)
+        {
+                tempU = Pc + (I_imm << 12)-4;
 
             registers[rd].setDataU(tempU);
 
@@ -540,9 +542,10 @@ void Load(unsigned int instWord, bool s)
 
     switch (funct3) {
         case 0:
-        if(s)
             cout << "\tLB\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
-        else {
+
+            if(!s)
+         {
             address = I_imm + registers[rs1].getData();
             temp = memory[address];
             signedTempBit = (temp >> 7) & 1;
@@ -553,9 +556,10 @@ void Load(unsigned int instWord, bool s)
         }
             break;
         case 1:
-            if(s)
             cout << "\tLH\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
-        else {
+
+            if(!s)
+         {
             address = I_imm + registers[rs1].getData();
             temp = memory[address] | (memory[address+1] << 8);
             signedTempBit = (temp >> 15) & 1;
@@ -566,27 +570,30 @@ void Load(unsigned int instWord, bool s)
         }
         break;
         case 2:
-        if(s)
             cout << "\tLW\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
-        else {
+
+            if(!s)
+        {
             address = I_imm + registers[rs1].getData();
             temp = memory[address] | (memory[address+1] << 8 ) | (memory[address+2] << 16 ) | (memory[address+3] << 24 );
             registers[rd].setData(temp);
         }
         break;
         case 3:
-        if(s)
             cout << "\tLBU\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
-        else {
+
+            if(!s)
+        {
             address = I_imm + registers[rs1].getData();
             temp = memory[address];
             registers[rd].setData(temp);
         }
         break;
         case 4:
-        if(s)
             cout << "\tLHU\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
-        else {
+
+            if(!s)
+        {
             address = I_imm + registers[rs1].getData();
             temp = memory[address] | (memory[address+1] << 8);
             registers[rd].setData(temp);
@@ -600,12 +607,8 @@ void Load(unsigned int instWord, bool s)
 
 bool ecall(bool s)
 {
-    if(s)
-    {
-        cout<<"\tECALL\t"<<endl;
-        return false;
-    }
-    else
+    cout<<"\tECALL\t"<<endl;
+    if(!s)
     {
         if(registers[17].getDataU() == 10)
         {
@@ -624,13 +627,13 @@ bool ecall(bool s)
             unsigned int address = registers[10].getData();
             if(address > MEMORY_SIZE) emitError("Bad Access: Address does not exist");
 
-                while (memory[address + i] != '\0') {
-                    str += memory[address + i];
-                    i++;
-                }
+            while (memory[address + i] != '\0') {
+                str += memory[address + i];
+                i++;
+            }
 
 
-                output.push_back(str);
+            output.push_back(str);
 
             return false;
         }
@@ -640,5 +643,6 @@ bool ecall(bool s)
             return false;
         }
     }
+return false;
 
 }

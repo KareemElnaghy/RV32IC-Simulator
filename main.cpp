@@ -17,6 +17,7 @@ void initialiseRegs()
 
 void printRegContent()
 {
+    cout<<endl;
     for(int i = 0; i<NUM_REGISTERS; i++)
     {
         registers[i].printRegData();
@@ -32,7 +33,7 @@ void printPrefix(unsigned int instA, unsigned int instW) {
 void instDecPrint(unsigned int instWord) {
 
     unsigned int opcode = instWord & 0x0000007F;
-    unsigned int instPC = printPc - 4;
+    unsigned int instPC = Pc - 4;
     bool s=true;
     int t;
 
@@ -82,12 +83,16 @@ void instDecPrint(unsigned int instWord) {
 void instDecExe(unsigned int instWord) {
 
     unsigned int opcode = instWord & 0x0000007F;
-    unsigned int instPC = exPc - 4;
+    unsigned int instPC = Pc - 4;
     bool s=false;
+
+
 
 
     if(!exitProgram)
     {
+        printPrefix(instPC, instWord);
+        std::cout << std::dec; // Switch back to decimal for register identifiers
         if (opcode == 0x33) { // R Instructions
             rType(instWord,s);
         }
@@ -103,11 +108,11 @@ void instDecExe(unsigned int instWord) {
         }
         else if(opcode == 0x63)
         {
-            exPc=bType(instWord,s);
+            Pc=bType(instWord,s);
         }
         else if(opcode == 0x6F)
         {
-            exPc=jType(instWord,s);
+            Pc=jType(instWord,s);
         }
         else if(opcode == 0x37 || opcode == 0x17)
         {
@@ -115,7 +120,7 @@ void instDecExe(unsigned int instWord) {
         }
         else if(opcode == 0x67)
         {
-            exPc=JalrType(instWord,s);
+            Pc=JalrType(instWord,s);
         }
         else if(opcode==0x73)
         {
@@ -156,20 +161,26 @@ int main(int argc, char *argv[]) {
         iFile.seekg(0, iFile.beg);
 
         if (!iFile.read((char *) (memory + textAddr), fsize)) emitError("Cannot read from machine code file\n");
-
-        while (printPc < fsize || exPc < fsize) {
-            if (printPc < fsize) {
-                instWord1 = (unsigned char) memory[printPc] | (((unsigned char) memory[printPc + 1]) << 8) | (((unsigned char) memory[printPc + 2]) << 16) | (((unsigned char) memory[printPc + 3]) << 24);
-                printPc += 4;
+        cout<<"translate"<<endl;
+        while (Pc < fsize || Pc < fsize) {
+            if (Pc < fsize) {
+                instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
+                Pc += 4;
                 instDecPrint(instWord1);
             }
-            if (exPc < fsize) {
-                instWord2 = (unsigned char) memory[exPc] | (((unsigned char) memory[exPc + 1]) << 8) | (((unsigned char) memory[exPc + 2]) << 16) | (((unsigned char) memory[exPc + 3]) << 24);
-                exPc += 4;
+
+        }
+        Pc=0;
+        cout<<"log "<<endl;
+        iFile.seekg(0, iFile.beg);
+        while (Pc < fsize || Pc < fsize)
+        {
+            if (Pc < fsize) {
+                instWord2 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
+                Pc += 4;
                 instDecExe(instWord2);
             }
         }
-
 
     }
     else emitError("Cannot access input file\n");
