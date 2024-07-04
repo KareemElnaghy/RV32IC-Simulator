@@ -489,6 +489,7 @@ void uType(unsigned int instWord, bool s) {
     unsigned int rd, opcode;
     int I_imm;
     unsigned int tempU;
+    int temp;
 
     opcode = instWord & 0x0000007F;
     rd = (instWord >> 7) & 0x0000001F;
@@ -496,14 +497,14 @@ void uType(unsigned int instWord, bool s) {
 
     int signedBit = (I_imm >> 19) & 1;
     if(signedBit == 1) {
-        I_imm|= 0xFFF000;
+        I_imm|= 0xFFF00000;
     }
 
     if(opcode == 0x37) {
         cout << "\tLUI\t" << registers[rd].getABI() <<", "<< "0x" << hex<< setw(5) << (I_imm & 0x000FFFFF)<<endl;
         if(!s)
-        {tempU = I_imm << 12;
-            registers[rd].setDataU(tempU);}
+        {temp = I_imm << 12;
+            registers[rd].setData(temp);}
     }
 
     else if(opcode == 0x17) {
@@ -579,7 +580,7 @@ void Load(unsigned int instWord, bool s)
             registers[rd].setData(temp);
         }
         break;
-        case 3:
+        case 4:
             cout << "\tLBU\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
 
             if(!s)
@@ -589,7 +590,7 @@ void Load(unsigned int instWord, bool s)
             registers[rd].setData(temp);
         }
         break;
-        case 4:
+        case 5:
             cout << "\tLHU\t" << registers[rd].getABI() <<", " << "0x" << hex << setw(3) << (I_imm& 0x00000FFF)<< "(" << registers[rs1].getABI() << ")"<<"\n";
 
             if(!s)
