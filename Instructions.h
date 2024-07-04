@@ -1,6 +1,5 @@
 //
 // Created by Kareem Elnaghy on 6/29/24.
-//
 
 #include <iostream>
 #include <bitset>
@@ -25,102 +24,64 @@ void emitError(const string& msg)
     exit(0);
 }
 
-void rType(unsigned int instWord, bool s)
-{
-    unsigned int rd, rs1, rs2, funct3, funct7;
-
-    rd = (instWord >> 7) & 0x0000001F;
-    funct3 = (instWord >> 12) & 0x00000007;
-    rs1 = (instWord >> 15) & 0x0000001F;
-    rs2 = (instWord >> 20) & 0x0000001F;
-    funct7 = (instWord >> 25)  & 0x0000007F;
-
-    switch (funct3)
-    {
+void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int funct3, unsigned int funct7) {
+    switch (funct3) {
         case 0:
             if (funct7 == 32) {
-                cout << "\tSUB\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-
-                if(!s)
-
+                // SUB
                 registers[rd].setData(registers[rs1].getData() - registers[rs2].getData());
             } else {
-                cout << "\tADD\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-
-                if(!s)
-
-                    registers[rd].setDataU(registers[rs1].getDataU() + registers[rs2].getDataU());
+                // ADD
+                registers[rd].setDataU(registers[rs1].getDataU() + registers[rs2].getDataU());
             }
             break;
 
         case 1:
-            cout << "\tSLL\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-
-            if(!s)
-
-                registers[rd].setData(registers[rs1].getData() << registers[rs2].getData());
+            // SLL
+            registers[rd].setData(registers[rs1].getData() << registers[rs2].getData());
             break;
+
         case 2:
-            cout << "\tSLT\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-
-           // if(s)
-
+            // SLT
+            registers[rd].setData((registers[rs1].getData() < registers[rs2].getData())?1:0);
 
         case 3:
-            cout << "\tSLTU\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-
-           // if(s)
+            // SLTU
+            registers[rd].setDataU((registers[rs1].getDataU() < registers[rs2].getDataU())?1:0);
 
         case 4:
-            cout << "\tXOR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-
-            if(!s)
-
-                registers[rd].setData(registers[rs1].getData() ^ registers[rs2].getData());
+            // XOR
+            registers[rd].setData(registers[rs1].getData() ^ registers[rs2].getData());
             break;
 
         case 5:
-            if(funct7 == 32)
-            {
-                cout << "\tSRA\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-
-                if(!s)
-                {
-                    int temp = registers[rs1].getData();
-                    registers[rd].setData(temp >> registers[rs2].getDataU());
-                }
+            if (funct7 == 32) {
+                // SRA
+                int temp = registers[rs1].getData();
+                registers[rd].setData(temp >> registers[rs2].getDataU());
+            } else {
+                // SRL
+                registers[rd].setData(registers[rs1].getData() >> registers[rs2].getData());
             }
-            else
-            {
-                cout << "\tSRL\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-
-                if(!s)
-
-                   registers[rd].setData(registers[rs1].getData() >> registers[rs2].getData());
-                break;
-            }
+            break;
 
         case 6:
-            cout << "\tOR\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-
-            if(!s)
-
-                registers[rd].setData(registers[rs1].getData() | registers[rs2].getData());
+            // OR
+            registers[rd].setData(registers[rs1].getData() | registers[rs2].getData());
             break;
+
         case 7:
-            cout << "\tAND\t" << registers[rd].getABI() << ", " << registers[rs1].getABI() << ", " << registers[rs2].getABI() << "\n";
-
-            if(!s)
-
-                registers[rd].setData(registers[rs1].getData() & registers[rs2].getData());
+            // AND
+            registers[rd].setData(registers[rs1].getData() & registers[rs2].getData());
             break;
 
         default:
-            cout << "\tUnknown R Instruction \n";
+            // Unknown R Instruction
+            break;
     }
 }
 
-int bType(unsigned int instWord, bool s) {
+    int bType(unsigned int instWord, bool s) {
 
     unsigned int rs1, rs2, funct3;
     int16_t b_imm;
