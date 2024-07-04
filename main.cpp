@@ -177,8 +177,8 @@ int main(int argc, char *argv[]) {
     printRegContent();
 
     cout<<"\n==============================Console Output=============================="<<endl;
-    for (const auto &i: output)
-        cout << i << endl;
+    for (int i =0; i<output.size(); i++)
+        cout << output[i] << endl;
 
 
 }
