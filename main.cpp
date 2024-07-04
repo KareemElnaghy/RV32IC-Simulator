@@ -237,55 +237,58 @@ void printIntInst(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned 
 }
 
 
-//void instDecPrint(unsigned int instWord) {
-//
-//    unsigned int opcode = instWord & 0x0000007F;
-//    unsigned int instPC = Pc - 4;
-//    bool s=true;
-//    int t;
-//
-//    printPrefix(instPC, instWord);
-//    std::cout << std::dec; // Switch back to decimal for register identifiers
-//
-//    if (opcode == 0x33) { // R Instructions
-//        rType(instWord,s);
-//    }
-//    else if(opcode == 0x13)
-//    {
-//        iType(instWord,s);
-//    }
-//    else if(opcode == 0x03)
-//    {
-//        Load(instWord,s);
-//    }
-//    else if(opcode == 0x23)
-//    {
-//        sType(instWord,s);
-//    }
-//    else if(opcode == 0x63)
-//    {
-//        bType(instWord,s);
-//    }
-//    else if(opcode == 0x6F)
-//    {
-//        jType(instWord,s);
-//    }
-//    else if(opcode == 0x37 || opcode == 0x17)
-//    {
-//        uType(instWord,s);
-//    }
-//    else if(opcode == 0x67)
-//    {
-//        JalrType(instWord,s);
-//    }
-//    else if(opcode==0x73)
-//    {
-//        ecall(s);
-//    }
-//    else cout<<"\tUnknown Instruction \n";
-//}
+void instDecPrint(unsigned int instWord) {
+    unsigned int instPC = Pc - 4;
+    unsigned int opcode = instWord & 0x0000007F;
+    unsigned int rd, rs1, rs2, funct3, funct7;
+    int16_t b_imm;
+    rd = (instWord >> 7) & 0x0000001F;
+    funct3 = (instWord >> 12) & 0x00000007;
+    rs1 = (instWord >> 15) & 0x0000001F;
+    rs2 = (instWord >> 20) & 0x0000001F;
+
+    // R Type
+    funct7 = (instWord >> 25)  & 0x0000007F;
+
+    // B Type
+    int instPC1 = Pc - 4;
+    b_imm = ((instWord >> 31) & 0x1) << 12;
+    b_imm |= ((instWord >> 7) & 0x1) << 11;
+    b_imm |= ((instWord >> 25) & 0x3F) << 5;
+    b_imm |= ((instWord >> 8) & 0xF) << 1;
+    b_imm |= 0;
+
+    // I Type
+    unsigned int shamt, I_immU;
+    int16_t I_imm;
+    shamt= (instWord >> 20) & 0x0000001F;
+    I_imm = ((instWord >> 20) & 0xFFF);
+    I_immU = ((instWord >> 20) & 0xFFF);
 
 
+    // S Type
+    int32_t S_imm;
+    S_imm = (instWord >> 7) & 0x0000001F;
+    S_imm |= (instWord>>13) & 0x0007F000;
+
+    // U Type
+    int U_imm;
+    U_imm = ((instWord >> 12) & 0x000FFFFF);
+
+    // J Type
+    int16_t j_imm;
+    j_imm = ((instWord >> 31) & 0x1) << 20;
+    j_imm |= ((instWord >> 12) & 0xFF) << 12;
+    j_imm |= ((instWord >> 20) & 0x1) << 11;
+    j_imm |= ((instWord >> 21) & 0x3FF) << 1;
+    j_imm |= 0;
+    int16_t J_imm;
+    J_imm = ((instWord >> 20) & 0xFFF);
+
+    printPrefix(instPC, instWord);
+    printIntInst(rd, rs1, rs2, opcode, funct3, funct7, b_imm, I_imm, I_immU, S_imm, j_imm, J_imm, U_imm, instPC1, shamt);
+
+}
 
 void instDecExe(unsigned int instWord) {
     unsigned int instPC = Pc - 4;
@@ -413,7 +416,7 @@ int main(int argc, char *argv[]) {
             if (Pc < fsize) {
                 instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
                 Pc += 4;
-                //instDecPrint(instWord1);
+                instDecPrint(instWord1);
             }
 
         }
