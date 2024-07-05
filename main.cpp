@@ -389,7 +389,37 @@ void compressPrint(unsigned int instHalf)
 void compressLog(unsigned int instHalf)
 {
     unsigned int instPC = Pc - 2;
-    unsigned int rd, rs1,funct3;
+    unsigned int rd_rs1, rs2, rd_rs1D,funct3,funct4, opcode;
+    rd_rs1 = (instHalf >> 7)&0x1F;
+    rs2 = (instHalf >> 2) & 0x1F;
+    opcode = instHalf & 3;
+    funct3 = (instHalf>>13)&0x7;
+    funct4 = (instHalf >> 12)& 0x1F;
+    if(opcode == 0x2)
+    {
+        if(funct4 == 1000)
+        {
+            if(rs2 == 0)
+                Pc=JalrType(rd_rs1, 0, 0, instPC);
+            else
+                rType(rd_rs1, 0, rs2, 0, 0x00);
+        }
+        else if(funct4 == 1001)
+        {
+            if(rs2 == 0)
+                Pc=JalrType(rd_rs1, 1, 0, instPC);
+            else
+                rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
+
+        }
+    }
+    else if(opcode == 0x0)
+    {
+    }
+    else if(opcode == 0x1)
+    {
+
+    }
 }
 
 
