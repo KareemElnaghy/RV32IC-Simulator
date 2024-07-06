@@ -347,7 +347,7 @@ void instDecExe(unsigned int instWord) {
         }
         else if(opcode == 0x13)
         {
-            iType(rd, rs1, funct3,funct7, I_imm, I_immU, shamt, opcode);
+            iType(rd, rs1, funct3, I_imm, I_immU, shamt, opcode);
         }
         else if(opcode == 0x03)
             Load(rd, rs1, funct3, I_imm);
@@ -386,38 +386,63 @@ void compressPrint(unsigned int instHalf)
 }
 
 
-void compressLog(unsigned int instHalf)
-{
+void compressLog(unsigned int instHalf) {
     unsigned int instPC = Pc - 2;
-    unsigned int rd_rs1, rs2, rd_rs1D,funct3,funct4, opcode;
+    int signedBit;
+    unsigned int rd_rs1, rs2, rd_rs1D,rs1D,rd_D, funct3,funct4, opcode;
     rd_rs1 = (instHalf >> 7)&0x1F;
     rs2 = (instHalf >> 2) & 0x1F;
     opcode = instHalf & 3;
     funct3 = (instHalf>>13)&0x7;
     funct4 = (instHalf >> 12)& 0x1F;
-    if(opcode == 0x2)
-    {
-        if(funct4 == 1000)
-        {
-            if(rs2 == 0)
-                Pc=JalrType(rd_rs1, 0, 0, instPC);
-            else
-                rType(rd_rs1, 0, rs2, 0, 0x00);
-        }
-        else if(funct4 == 1001)
-        {
-            if(rs2 == 0)
-                Pc=JalrType(rd_rs1, 1, 0, instPC);
-            else
-                rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
+    rs1D = (instHalf >> 7) & 0x7;
+    rd_rs1D = (instHalf >> 2) & 0x7;
+    rd_D = (instHalf>> 2) & 0x3;
+
+
+    //CI parsing
+    int8_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+    signedBit = (CI_imm >> 5) & 1;
+    if(signedBit == 1)
+        CI_imm|= 0xC0;
+
+    //CIW parsing
+    int8_t CIW_imm = (instHalf >> 5) & 0xFF;
+
+    //CL parsing
+    int8_t CL_imm = ((instHalf >> 5) & 1) | ((instHalf >> 9) & 0x1E);
+    signedBit = (CL_imm >> 4) & 1;
+    if(signedBit == 1)
+        CI_imm|= 0x70;
+
+
+    switch (opcode){
+        case 0:
+            if(funct3==0) {
+               iType(rd_D+8,0x2,0, 4*CIW_imm, 4*CIW_imm, 0, 0x13);
+            }
+        if(func3==0x2) {
 
         }
-    }
-    else if(opcode == 0x0)
+
+        case 1:
+
+        case 2:
+    if(funct4 == 1000)
     {
+        if(rs2 == 0)
+            Pc=JalrType(rd_rs1, 0, 0, instPC);
+        else
+            rType(rd_rs1, 0, rs2, 0, 0x00);
     }
-    else if(opcode == 0x1)
+    else if(funct4 == 1001)
     {
+        if(rs2 == 0)
+            Pc=JalrType(rd_rs1, 1, 0, instPC);
+        else
+            rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
+    }
+
 
     }
 }

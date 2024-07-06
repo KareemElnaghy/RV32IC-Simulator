@@ -189,7 +189,7 @@ int JalrType(unsigned int rs1, unsigned int rd,int16_t  J_imm, int instPC1)
 }
 
 
-void iType(unsigned int rd, unsigned int rs1, unsigned int funct3, unsigned int funct7, int16_t I_imm,int16_t I_immU,unsigned int shamt, unsigned int opcode)
+void iType(unsigned int rd, unsigned int rs1, unsigned int funct3, int16_t I_imm,int16_t I_immU,unsigned int shamt, unsigned int opcode)
 {
     int temp;
     unsigned int tempU;
