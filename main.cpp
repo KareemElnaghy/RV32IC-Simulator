@@ -415,33 +415,44 @@ void compressLog(unsigned int instHalf) {
     if(signedBit == 1)
         CI_imm|= 0x70;
 
+    // CSS parsing
+    int8_t SS_imm = (instHalf>>7)& 0x3F;
+    signedBit = (SS_imm >> 7) & 1;
+    if(signedBit == 1)
+        SS_imm|= 0x70;
+
+
 
     switch (opcode){
         case 0:
             if(funct3==0) {
                iType(rd_D+8,0x2,0, 4*CIW_imm, 4*CIW_imm, 0, 0x13);
             }
-        if(func3==0x2) {
+        if(funct3==0x2) {
 
         }
 
         case 1:
 
         case 2:
-    if(funct4 == 1000)
-    {
-        if(rs2 == 0)
-            Pc=JalrType(rd_rs1, 0, 0, instPC);
-        else
-            rType(rd_rs1, 0, rs2, 0, 0x00);
-    }
-    else if(funct4 == 1001)
-    {
-        if(rs2 == 0)
-            Pc=JalrType(rd_rs1, 1, 0, instPC);
-        else
-            rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
-    }
+            if(funct4 == 0b1000)
+            {
+                if(rs2 == 0)
+                    Pc=JalrType(rd_rs1, 0, 0, instPC);
+                else
+                    rType(rd_rs1, 0, rs2, 0, 0x00);
+            }
+            else if(funct4 == 0b1001)
+            {
+                if(rs2 == 0)
+                    Pc=JalrType(rd_rs1, 1, 0, instPC);
+                else
+                    rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
+            }
+            else if (funct3 == 0b110)
+            {
+                sType(rs2, 2, 0b011,4*SS_imm);
+            }
 
 
     }
