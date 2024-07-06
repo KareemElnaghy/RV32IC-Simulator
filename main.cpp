@@ -389,15 +389,16 @@ void compressPrint(unsigned int instHalf)
 void compressLog(unsigned int instHalf) {
     unsigned int instPC = Pc - 2;
     int signedBit;
-    unsigned int rd_rs1, rs2, rd_rs1D,rs1D,rd_D, funct3,funct4, opcode;
+    unsigned int rd_rs1, rs2, rd_rs1D,rs1_D,rd_D,rs2_d, funct3,funct4, opcode;
     rd_rs1 = (instHalf >> 7)&0x1F;
     rs2 = (instHalf >> 2) & 0x1F;
     opcode = instHalf & 3;
     funct3 = (instHalf>>13)&0x7;
     funct4 = (instHalf >> 12)& 0x1F;
-    rs1D = (instHalf >> 7) & 0x7;
-    rd_rs1D = (instHalf >> 2) & 0x7;
+    rs1_D = (instHalf >> 7) & 0x7;
+    rd_rs1D = rs1_D;
     rd_D = (instHalf>> 2) & 0x3;
+    rd_D = rs2_d;
 
 
     //CI parsing
@@ -407,19 +408,23 @@ void compressLog(unsigned int instHalf) {
         CI_imm|= 0xC0;
 
     //CIW parsing
-    int8_t CIW_imm = (instHalf >> 5) & 0xFF;
+    int16_t CIW_imm = (instHalf >> 5) & 0xFF;
 
     //CL parsing
-    int8_t CL_imm = ((instHalf >> 5) & 1) | ((instHalf >> 9) & 0x1E);
+    int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
     signedBit = (CL_imm >> 4) & 1;
     if(signedBit == 1)
         CI_imm|= 0x70;
 
     // CSS parsing
-    int8_t SS_imm = (instHalf>>7)& 0x3F;
+    int16_t SS_imm = (instHalf>>7)& 0x3F;
     signedBit = (SS_imm >> 7) & 1;
     if(signedBit == 1)
         SS_imm|= 0x70;
+
+    // CS Parsing
+    int16_t S_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C) | (funct3>>7);
+
 
 
 
@@ -433,6 +438,22 @@ void compressLog(unsigned int instHalf) {
         }
 
         case 1:
+            if(S_imm == 0b10001111)
+            {
+                rType(rd_D, rd_D, rs2_d,0x7, 0x00);
+            }
+            else if(S_imm == 0b10001110)
+            {
+                rType(rd_D, rd_D, rs2_d,0x6, 0x00);
+            }
+            else if(S_imm == 0b10001101)
+            {
+                rType(rd_D, rd_D, rs2_d,0x4, 0x00);
+            }
+            else if(S_imm == 0b10001100)
+            {
+                rType(rd_D, rd_D, rs2_d,0x0, 0x20);
+            }
 
         case 2:
             if(funct4 == 0b1000)
