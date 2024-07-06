@@ -32,18 +32,18 @@ void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int fun
                 registers[rd].setData(registers[rs1].getData() - registers[rs2].getData());
             } else {
                 // ADD
-                registers[rd].setDataU(registers[rs1].getDataU() + registers[rs2].getDataU());
+                registers[rd].setData(registers[rs1].getData() + registers[rs2].getData());
             }
             break;
 
         case 1:
             // SLL
-            registers[rd].setData(registers[rs1].getData() << registers[rs2].getData());
+            registers[rd].setDataU(registers[rs1].getDataU() << registers[rs2].getDataU());
             break;
 
         case 2:
             // SLT
-            registers[rd].setData((registers[rs1].getData() < registers[rs2].getData())?1:0);
+            registers[rd].setDataU((registers[rs1].getData() < registers[rs2].getData())?1:0);
 
         case 3:
             // SLTU
@@ -61,7 +61,7 @@ void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int fun
                 registers[rd].setData(temp >> registers[rs2].getDataU());
             } else {
                 // SRL
-                registers[rd].setData(registers[rs1].getData() >> registers[rs2].getData());
+                registers[rd].setDataU(registers[rs1].getDataU() >> registers[rs2].getDataU());
             }
             break;
 
@@ -263,7 +263,7 @@ int JalrType(unsigned int rs1, unsigned int rd,int16_t  J_imm,  bool comp)
 
 void iType(unsigned int rd, unsigned int rs1, unsigned int funct3,unsigned int funct7, int16_t I_imm,int16_t I_immU,unsigned int shamt, unsigned int opcode)
 {
-    int temp;
+    int16_t temp;
     unsigned int tempU;
 
     int signedBit = (I_imm >> 11) & 1;
