@@ -17,7 +17,6 @@ unsigned char memory[MEMORY_SIZE];
 Register registers[NUM_REGISTERS];
 vector<string> output;
 bool exitProgram = false;
-bool s;
 
 void emitError(const string& msg)
 {
