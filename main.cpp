@@ -406,7 +406,7 @@ unsigned int instPC = Pc - 2;
         CI_imm|= 0xFF00;
 
     //CL parsing
-    int16_t CL_imm = ((instHalf >> 5) & 1) | ((instHalf >> 9) & 0x1E);
+    int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
     signedBit = (CL_imm >> 4) & 1;
     if(signedBit == 1)
         CI_imm|= 0xFF70;
