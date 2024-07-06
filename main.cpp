@@ -339,7 +339,7 @@ void instDecExe(unsigned int instWord) {
 
     if(!exitProgram)
     {
-        printPrefix(instPC1, instWord);
+        printPrefix(instPC, instWord);
         std::cout << std::dec; // Switch back to decimal for register identifiers
         if (opcode == 0x33) { // R Instructions
             rType(rd, rs1, rs2, funct3,funct7);
@@ -360,7 +360,7 @@ void instDecExe(unsigned int instWord) {
         }
         else if(opcode == 0x6F)
         {
-            Pc=jType(rd, j_imm, c);
+            Pc=jType(rd, j_imm, instPC1);
         }
         else if(opcode == 0x37 || opcode == 0x17)
         {
@@ -368,7 +368,7 @@ void instDecExe(unsigned int instWord) {
         }
         else if(opcode == 0x67)
         {
-            Pc=JalrType(rs1, rd, J_imm, c);
+            Pc=JalrType(rs1, rd, J_imm, instPC1);
         }
         else if(opcode==0x73)
         {
@@ -406,40 +406,11 @@ unsigned int instPC1 = Pc - 2;
         CI_imm|= 0xFF00;
 
     //CL parsing
-    int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
+    int16_t CL_imm = ((instHalf >> 5) & 1) | ((instHalf >> 9) & 0x1E);
     signedBit = (CL_imm >> 4) & 1;
     if(signedBit == 1)
-        CL_imm|= 0xFF70;
+        CI_imm|= 0xFF70;
 
-
-    //CB parsing
-    int16_t B_imm = (instHalf >> 2) & 0x1F;
-    B_imm |= (instHalf >> 10) & 0xF<<4;
-
-    int16_t shift=B_imm & 0x1F;
-    shift|= (B_imm >> 7) & 0x1;
-    funct8= B_imm & 0xFC00;
-
-    signedBit = (B_imm >> 7) & 1;
-    if(signedBit == 1)
-        B_imm|= 0xFF00;
-
-    //CJ
-    //int16_t J_imm= (instHalf >> 2) & 0x7FF;
-    int16_t J_imm;
-    J_imm |= (instHalf >> 2) & 0x1 << 5;    // imm[5]
-    J_imm |= (instHalf >> 3) & 0x7 << 1;    // imm[3:1]
-    J_imm |= (instHalf >> 6) & 0x1 << 7;    // imm[7]
-    J_imm |= (instHalf >> 7) & 0x1 << 6;    // imm[6]
-    J_imm |= (instHalf >> 8) & 0x1 << 10;   // imm[10]
-    J_imm |= (instHalf >> 9) & 0x3 << 8;    // imm[9:8]
-    J_imm |= (instHalf >> 11) & 0x1 << 4;   // imm[4]
-    J_imm |= (instHalf >> 12) & 0x1 << 11;  // imm[11]
-    signedBit = (J_imm >> 10) & 1;
-    if(signedBit == 1)
-        J_imm|= 0xf800;
-    printPrefix(instPC1, instHalf);
-    std::cout << std::dec; // Switch back to decimal for register identifiers
 
     switch (opcode){
         case 0:
@@ -461,25 +432,6 @@ unsigned int instPC1 = Pc - 2;
         else if(funct3==0x2) {
             cout<<"\tc.li\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
         }
-
-            else if(funct3==1) {
-                cout<<endl<<"imm: "<<J_imm<<"  instPC:"<<instPC1<<endl;
-                cout << "\tC.JAL\t" << "0x " << hex << setw(13) << J_imm + instPC1 << endl;
-                //Pc=jType(1,J_imm,c);
-            }
-            else if(funct3==5)
-                cout << "\tJ\t"  << "0x " << hex<< setw(13)<< J_imm + instPC1 << endl;
-            else if(funct3==6)
-                cout << "\tBEQZ\t" << registers[rs1D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << B_imm + instPC1 << "\n";
-            else if(funct3==7)
-                cout << "\tBNEZ\t" << registers[rs1D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << B_imm + instPC1 << "\n";
-
-          //  else if(funct8==0x20 | funct8==0x24)
-             //   iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
-           // else if(funct8==0x25 | funct8==0x21)
-            //    iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
-
-
         else if(funct3==0x3) {
             if(rd_rs1 == 0x2)
                 cout<<"\tc.addi16sp\t"<<hex<<CI_imm<<endl;
@@ -492,14 +444,14 @@ unsigned int instPC1 = Pc - 2;
     if(funct4 == 0b1000)
     {
         if(rs2 == 0)
-            Pc=JalrType(rd_rs1, 0, 0, instPC1);
+            Pc=JalrType(rd_rs1, 0, 0, instPC);
         else
             rType(rd_rs1, 0, rs2, 0, 0x00);
     }
     else if(funct4 == 0b1001)
     {
         if(rs2 == 0)
-            Pc=JalrType(rd_rs1, 1, 0, instPC1);
+            Pc=JalrType(rd_rs1, 1, 0, instPC);
         else
             rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
     }
@@ -516,7 +468,7 @@ unsigned int instPC1 = Pc - 2;
 
 
 void compressLog(unsigned int instHalf) {
-    bool c=true;
+    unsigned int instPC = Pc - 2;
     int signedBit;
     unsigned int rd_rs1, rs2, rd_rs1D,rs1_D,rd_D,rs2_d, funct3,funct4,funct8, opcode;
     rd_rs1 = (instHalf >> 7)&0x1F;
@@ -549,9 +501,11 @@ void compressLog(unsigned int instHalf) {
     int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
     signedBit = (CL_imm >> 4) & 1;
     if(signedBit == 1)
-        CL_imm|= 0xFF70;
+        CI_imm|= 0xFF70;
 
     //CB parsing
+
+
     int16_t B_imm = (instHalf >> 2) & 0x1F;
     B_imm |= (instHalf >> 10) & 0xF<<4;
 
@@ -598,6 +552,8 @@ void compressLog(unsigned int instHalf) {
             else if(funct3==0x2) {
                 Load(rd_D,rs1_D,0x2,CL_imm);
             }
+            else if(funct3 == 0b110)
+                sType(rs1_D, rs2_d, 0x2, 4*S_imm);
 
         case 1:
             if(funct3==0) {
@@ -613,46 +569,42 @@ void compressLog(unsigned int instHalf) {
                     uType(rd_rs1, 0x37, CI_imm);
             }
             else if(funct3==1)
-                Pc=jType(1,J_imm,c);
+                jType(1,J_imm,instPC);
+
             else if(funct3==5)
-                Pc=jType(0,J_imm,c);
+                jType(0,J_imm,instPC);
             else if(funct3==6)
-                Pc=bType(rs1_D,0,0,B_imm,c);
+                bType(rs1_D,0,0,B_imm,instPC);
             else if(funct3==7)
-               Pc= bType(rs1_D,0,1,B_imm,c);
+                bType(rs1_D,0,1,B_imm,instPC);
             else if(funct8==0x20 | funct8==0x24)
                 iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
             else if(funct8==0x25 | funct8==0x21)
                 iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
-            else if(S_imm == 0b10001111)
-            {
-                rType(rd_D, rd_D, rs2_d,0x7, 0x00);
-            }
-            else if(S_imm == 0b10001110)
-            {
-                rType(rd_D, rd_D, rs2_d,0x6, 0x00);
-            }
-            else if(S_imm == 0b10001101)
-            {
-                rType(rd_D, rd_D, rs2_d,0x4, 0x00);
-            }
-            else if(S_imm == 0b10001100)
-            {
-                rType(rd_D, rd_D, rs2_d,0x0, 0x20);
-            }
+            else if (S_imm == 0b10001111)
+                rType(rd_D, rd_D, rs2_d, 0x7, 0x00);
+
+            else if (S_imm == 0b10001110)
+                rType(rd_D, rd_D, rs2_d, 0x6, 0x00);
+
+            else if (S_imm == 0b10001101)
+                rType(rd_D, rd_D, rs2_d, 0x4, 0x00);
+            else if (S_imm == 0b10001100)
+                rType(rd_D, rd_D, rs2_d, 0x0, 0x20);
+
 
         case 2:
             if(funct4 == 0b1000)
             {
                 if(rs2 == 0)
-                    Pc=JalrType(rd_rs1, 0, 0, c);
+                    Pc=JalrType(rd_rs1, 0, 0, instPC);
                 else
                     rType(rd_rs1, 0, rs2, 0, 0x00);
             }
             else if(funct4 == 0b1001)
             {
                 if(rs2 == 0)
-                    Pc=JalrType(rd_rs1, 1, 0, c);
+                    Pc=JalrType(rd_rs1, 1, 0, instPC);
                 else
                     rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
             }
@@ -708,27 +660,26 @@ int main(int argc, char *argv[]) {
 
         if (!iFile.read((char *) (memory + textAddr), fsize)) emitError("Cannot read from machine code file\n");
         cout<<"translate"<<endl;
-       /* while (Pc < fsize || Pc < fsize) {
+        while (Pc < fsize || Pc < fsize) {
             if (Pc < fsize) {
                 check=(unsigned char) memory[Pc] & 3;
                 if(check == 0x3)
                 {
                     instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
-                   // Pc += 4;
-                   // instDecPrint(instWord1);
+                    Pc += 4;
+                    //instDecPrint(instWord1);
                 }
                 else
                 {
-                     instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) ;
-                  //  Pc += 2;
-                   // compressPrint(instWord1);
+                    instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) ;
+                    Pc += 2;
+                    //compressPrint(instWord1);
 
                 }
 
             }
 
         }
-        */
         Pc=0;
         cout<<"log "<<endl;
         iFile.seekg(0, iFile.beg);
@@ -745,8 +696,8 @@ int main(int argc, char *argv[]) {
                 else
                 {
                     instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) ;
-                    Pc += 2;
-                    compressLog(instWord1);
+                    //Pc += 2;
+                    //compressLog(instWord1);
 
                 }
             }
