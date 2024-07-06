@@ -347,7 +347,7 @@ void instDecExe(unsigned int instWord) {
         }
         else if(opcode == 0x13)
         {
-            iType(rd, rs1, funct3, I_imm, I_immU, shamt, opcode);
+            iType(rd, rs1, funct3,funct7, I_imm, I_immU, shamt, opcode);
         }
         else if(opcode == 0x03)
             Load(rd, rs1, funct3, I_imm);
@@ -357,7 +357,7 @@ void instDecExe(unsigned int instWord) {
         }
         else if(opcode == 0x63)
         {
-            Pc=bType(rd, rs1, rs2, funct3, b_imm, instPC1);
+            Pc=bType(rs1, rs2, funct3, b_imm, instPC1);
         }
         else if(opcode == 0x6F)
         {
@@ -593,7 +593,7 @@ void compressLog(unsigned int instHalf) {
 }
 
     }
-}
+
 
 
 int main(int argc, char *argv[]) {

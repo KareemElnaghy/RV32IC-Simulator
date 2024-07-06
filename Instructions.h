@@ -365,7 +365,6 @@ bool ecall()
 {
         if(registers[17].getDataU() == 10)
         {
-            s = true;
             return true;
         }
         else if(registers[17].getDataU() == 1)
