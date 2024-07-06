@@ -380,9 +380,91 @@ void instDecExe(unsigned int instWord) {
 }
 void compressPrint(unsigned int instHalf)
 {
-    unsigned int instPC = Pc - 2;
-    unsigned int opcode = instHalf & 0x3;
-    unsigned int rd, rs1,funct3;
+unsigned int instPC = Pc - 2;
+    int signedBit;
+    unsigned int rd_rs1, rs2, rd_rs1D,rs1D,rd_D, funct3,funct4, opcode;
+    rd_rs1 = (instHalf >> 7)&0x1F;
+    rs2 = (instHalf >> 2) & 0x1F;
+    opcode = instHalf & 3;
+    funct3 = (instHalf>>13)&0x7;
+    funct4 = (instHalf >> 12)& 0x1F;
+    rs1D = (instHalf >> 7) & 0x7;
+    rd_rs1D = (instHalf >> 2) & 0x7;
+    rd_D = (instHalf>> 2) & 0x3;
+
+
+    //CI parsing
+    int16_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+    int16_t CI_immU = CI_imm;
+    signedBit = (CI_imm >> 5) & 1;
+    if(signedBit == 1)
+        CI_imm|= 0xFFC0;
+
+    //CIW parsing
+    int16_t CIW_imm = (instHalf >> 5) & 0xFF;
+    signedBit = (CIW_imm >> 7) & 1;
+    if(signedBit == 1)
+        CI_imm|= 0xFF00;
+
+    //CL parsing
+    int16_t CL_imm = ((instHalf >> 5) & 1) | ((instHalf >> 9) & 0x1E);
+    signedBit = (CL_imm >> 4) & 1;
+    if(signedBit == 1)
+        CI_imm|= 0xFF70;
+
+
+    switch (opcode){
+        case 0:
+            if(funct3==0) {
+                cout<<"\tc.addi4spn\t"<<registers[rd_D+8].getABI()<<", "<<4*CI_imm<<endl;
+
+            }
+        else if(funct3==0x2) {
+                cout<<"\tc.lw\t"<<registers[rd_D+8].getABI()<<", "<<CI_imm<<"("<<registers[rd_D+8].getABI()<<")"<<endl;
+        }
+
+        case 1:
+            if(funct3==0) {
+                if(rd_rs1==0)
+                    cout << "\tc.nop\t";
+                else
+                    cout<<"\tc.addi\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
+            }
+        else if(funct3==0x2) {
+            cout<<"\tc.li\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
+        }
+        else if(funct3==0x3) {
+            if(rd_rs1 == 0x2)
+                cout<<"\tc.addi16sp\t"<<hex<<CI_imm<<endl;
+            else
+                cout<<"\tc.lui\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
+
+        }
+
+        case 2:
+    if(funct4 == 1000)
+    {
+        if(rs2 == 0)
+            Pc=JalrType(rd_rs1, 0, 0, instPC);
+        else
+            rType(rd_rs1, 0, rs2, 0, 0x00);
+    }
+    else if(funct4 == 1001)
+    {
+        if(rs2 == 0)
+            Pc=JalrType(rd_rs1, 1, 0, instPC);
+        else
+            rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
+    }
+    else if(funct3==0)
+    {
+        cout<<"\tc.slli\t"<<registers[rd_rs1].getABI()<<", "<<CI_immU<<endl;
+    }
+    else if(funct3==0x2)
+    {
+        cout<<"\tc.lwsp\t"<<registers[rd_rs1].getABI()<<", "<<CI_imm<<endl;
+    }
+    }
 }
 
 
