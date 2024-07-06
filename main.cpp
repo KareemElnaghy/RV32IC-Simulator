@@ -401,72 +401,60 @@ void compressLog(unsigned int instHalf) {
 
 
     //CI parsing
-    int16_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
-    int16_t CI_immU = CI_imm;
+    int8_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
     signedBit = (CI_imm >> 5) & 1;
     if(signedBit == 1)
-        CI_imm|= 0xFFC0;
+        CI_imm|= 0xC0;
 
     //CIW parsing
-    int16_t CIW_imm = (instHalf >> 5) & 0xFF;
-    signedBit = (CIW_imm >> 7) & 1;
-    if(signedBit == 1)
-        CI_imm|= 0xFF00;
+    int8_t CIW_imm = (instHalf >> 5) & 0xFF;
 
     //CL parsing
-    int16_t CL_imm = ((instHalf >> 5) & 1) | ((instHalf >> 9) & 0x1E);
+    int8_t CL_imm = ((instHalf >> 5) & 1) | ((instHalf >> 9) & 0x1E);
     signedBit = (CL_imm >> 4) & 1;
     if(signedBit == 1)
-        CI_imm|= 0xFF70;
+        CI_imm|= 0x70;
+
+    // CSS parsing
+    int8_t SS_imm = (instHalf>>7)& 0x3F;
+    signedBit = (SS_imm >> 7) & 1;
+    if(signedBit == 1)
+        SS_imm|= 0x70;
+
 
 
     switch (opcode){
         case 0:
             if(funct3==0) {
-               iType(rd_D+8,0x0,0, 4*CIW_imm, 4*CIW_imm, 0, 0x13);
+               iType(rd_D+8,0x2,0, 4*CIW_imm, 4*CIW_imm, 0, 0x13);
             }
-        else if(funct3==0x2) {
-        Load(rd_D+8,rs1D+8,0x2,CL_imm);
+        if(funct3==0x2) {
+
         }
 
         case 1:
-            if(funct3==0) {
-                iType(0,0,0,0,0,0,0x13);
-            }
-        else if(funct3==0x2) {
-            iType(rd_rs1, 0,0,CI_imm,CI_imm,0,0x13);
-        }
-        else if(funct3==0x3) {
-            if(rd_rs1 == 0x2)
-                iType(rd_rs1,rd_rs1,0,CI_imm*16,CI_imm*16,0,0x13);
-            else
-                uType(rd_rs1,0x37,CI_imm);
-
-        }
 
         case 2:
-    if(funct4 == 1000)
-    {
-        if(rs2 == 0)
-            Pc=JalrType(rd_rs1, 0, 0, instPC);
-        else
-            rType(rd_rs1, 0, rs2, 0, 0x00);
-    }
-    else if(funct4 == 1001)
-    {
-        if(rs2 == 0)
-            Pc=JalrType(rd_rs1, 1, 0, instPC);
-        else
-            rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
-    }
-    else if(funct3==0)
-    {
-    iType(rd_rs1,rd_rs1,0x1,0,0,CI_immU,0x13);
-    }
-    else if(funct3==0x2)
-    {
-        Load(rd_rs1,0x2,0x2,CI_imm*4);
-    }
+            if(funct4 == 0b1000)
+            {
+                if(rs2 == 0)
+                    Pc=JalrType(rd_rs1, 0, 0, instPC);
+                else
+                    rType(rd_rs1, 0, rs2, 0, 0x00);
+            }
+            else if(funct4 == 0b1001)
+            {
+                if(rs2 == 0)
+                    Pc=JalrType(rd_rs1, 1, 0, instPC);
+                else
+                    rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
+            }
+            else if (funct3 == 0b110)
+            {
+                sType(rs2, 2, 0b011,4*SS_imm);
+            }
+
+
     }
 }
 
