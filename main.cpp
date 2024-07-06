@@ -379,17 +379,20 @@ void instDecExe(unsigned int instWord) {
 }
 void compressPrint(unsigned int instHalf)
 {
-unsigned int instPC = Pc - 2;
+    unsigned int instPC = Pc - 2;
     int signedBit;
-    unsigned int rd_rs1, rs2, rd_rs1D,rs1D,rd_D, funct3,funct4, opcode;
+    unsigned int rd_rs1, rs2, rd_rs1D,rs1_D,rd_D,rs2_d, funct3,funct4,funct8, opcode;
     rd_rs1 = (instHalf >> 7)&0x1F;
     rs2 = (instHalf >> 2) & 0x1F;
     opcode = instHalf & 3;
     funct3 = (instHalf>>13)&0x7;
     funct4 = (instHalf >> 12)& 0x1F;
-    rs1D = (instHalf >> 7) & 0x7;
-    rd_rs1D = (instHalf >> 2) & 0x7;
+    rs1_D = (instHalf >> 7) & 0x7;
+    rs1_D+=8;
+    rd_rs1D = rs1_D;
     rd_D = (instHalf>> 2) & 0x3;
+    rd_D += 8;
+    rs2_d = rd_D;
 
 
     //CI parsing
@@ -406,63 +409,95 @@ unsigned int instPC = Pc - 2;
         CI_imm|= 0xFF00;
 
     //CL parsing
-    int16_t CL_imm = ((instHalf >> 5) & 1) | ((instHalf >> 9) & 0x1E);
+    int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
     signedBit = (CL_imm >> 4) & 1;
     if(signedBit == 1)
         CI_imm|= 0xFF70;
+
+    //CB parsing
+
+    int16_t B_imm = (instHalf >> 2) & 0x1F;
+    B_imm |= (instHalf >> 10) & 0xF<<4;
+
+    int16_t shift=B_imm & 0x1F;
+    shift|= (B_imm >> 7) & 0x1;
+    funct8= B_imm & 0xFC00;
+
+    //CL parsing
+    int16_t J_imm= (instHalf >> 2) & 0x7FF;
+    if(signedBit == 1)
+        CI_imm|= 0x70;
+
+    // CSS parsing
+    int16_t SS_imm = (instHalf>>7)& 0x3F;
+    signedBit = (SS_imm >> 7) & 1;
+    if(signedBit == 1)
+        SS_imm|= 0x70;
+
+    // CS Parsing
+    int16_t S_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C) | (funct3>>7);
 
 
     switch (opcode){
         case 0:
             if(funct3==0) {
-                cout<<"\tc.addi4spn\t"<<registers[rd_D+8].getABI()<<", "<<4*CI_imm<<endl;
+                cout<<"\tC.ADDI4SP\t"<<registers[rd_D+8].getABI()<<", "<<4*CI_imm<<endl;
 
             }
         else if(funct3==0x2) {
-                cout<<"\tc.lw\t"<<registers[rd_D+8].getABI()<<", "<<CI_imm<<"("<<registers[rd_D+8].getABI()<<")"<<endl;
+                cout<<"\tC.LW\t"<<registers[rd_D+8].getABI()<<", "<<CI_imm<<"("<<registers[rd_D+8].getABI()<<")"<<endl;
         }
 
         case 1:
             if(funct3==0) {
                 if(rd_rs1==0)
-                    cout << "\tc.nop\t";
+                    cout << "\tC.NOP\t";
                 else
-                    cout<<"\tc.addi\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
+                    cout<<"\tC.ADDI\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
             }
-        else if(funct3==0x2) {
-            cout<<"\tc.li\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
-        }
-        else if(funct3==0x3) {
-            if(rd_rs1 == 0x2)
-                cout<<"\tc.addi16sp\t"<<hex<<CI_imm<<endl;
-            else
-                cout<<"\tc.lui\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
+            else if(funct3==0x2) {
+                cout<<"\tC.LI\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
+            }
+            else if(funct3==0x3) {
+                if(rd_rs1 == 0x2)
+                    cout<<"\tC.ADDI16SP\t"<<hex<<CI_imm<<endl;
+                else
+                    cout<<"\tC.LUI\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
 
-        }
+            }
+            else if (S_imm == 0b10001111)
+                cout<<"\tC.AND\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
 
+            else if (S_imm == 0b10001110)
+                cout<<"\tC.OR\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
+
+            else if (S_imm == 0b10001101)
+                cout<<"\tC.XOR\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
+            else if (S_imm == 0b10001100)
+                cout<<"\tC.SUB\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
         case 2:
-    if(funct4 == 0b1000)
-    {
-        if(rs2 == 0)
-            Pc=JalrType(rd_rs1, 0, 0, instPC);
-        else
-            rType(rd_rs1, 0, rs2, 0, 0x00);
-    }
-    else if(funct4 == 0b1001)
-    {
-        if(rs2 == 0)
-            Pc=JalrType(rd_rs1, 1, 0, instPC);
-        else
-            rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
-    }
-    else if(funct3==0)
-    {
-        cout<<"\tc.slli\t"<<registers[rd_rs1].getABI()<<", "<<CI_immU<<endl;
-    }
-    else if(funct3==0x2)
-    {
-        cout<<"\tc.lwsp\t"<<registers[rd_rs1].getABI()<<", "<<CI_imm<<endl;
-    }
+            if(funct4 == 0b1000)
+            {
+                if(rs2 == 0)
+                    cout<<"\tC.JR\t"<<registers[rd_rs1].getABI()<<endl;
+                else
+                    cout<<"\tC.MV\t"<<registers[rd_rs1].getABI()<<", "<<registers[rs2].getABI()<<endl;
+            }
+            else if(funct4 == 0b1001)
+            {
+                if(rs2 == 0)
+                    cout<<"\tC.JALR\t"<<registers[rd_rs1].getABI()<<endl;
+                else
+                    cout<<"\tC.ADD\t"<<registers[rd_rs1].getABI()<<", "<<registers[rs2].getABI()<<endl;
+            }
+            else if(funct3==0)
+            {
+                cout<<"\tC.SLLI\t"<<registers[rd_rs1].getABI()<<", "<<CI_immU<<endl;
+            }
+            else if(funct3==0x2)
+            {
+                cout<<"\tC.LWSP\t"<<registers[rd_rs1].getABI()<<", "<<CI_imm<<endl;
+            }
     }
 }
 
@@ -504,7 +539,6 @@ void compressLog(unsigned int instHalf) {
         CI_imm|= 0xFF70;
 
     //CB parsing
-
 
     int16_t B_imm = (instHalf >> 2) & 0x1F;
     B_imm |= (instHalf >> 10) & 0xF<<4;
@@ -550,34 +584,29 @@ void compressLog(unsigned int instHalf) {
                     uType(rd_rs1, 0x37, CI_imm);
             }
             else if(funct3==1)
-                jType(1,J_imm,instPC);
+                Pc = jType(1,J_imm,instPC);
 
             else if(funct3==5)
-                jType(0,J_imm,instPC);
+                Pc = jType(0,J_imm,instPC);
             else if(funct3==6)
-                bType(rs1_D,0,0,B_imm,instPC);
+                Pc = bType(rs1_D,0,0,B_imm,instPC);
             else if(funct3==7)
-                bType(rs1_D,0,1,B_imm,instPC);
+                Pc = bType(rs1_D,0,1,B_imm,instPC);
             else if(funct8==0x20 | funct8==0x24)
                 iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
             else if(funct8==0x25 | funct8==0x21)
                 iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
-            else if(S_imm == 0b10001111)
-            {
-                rType(rd_D, rd_D, rs2_d,0x7, 0x00);
-            }
-            else if(S_imm == 0b10001110)
-            {
-                rType(rd_D, rd_D, rs2_d,0x6, 0x00);
-            }
-            else if(S_imm == 0b10001101)
-            {
-                rType(rd_D, rd_D, rs2_d,0x4, 0x00);
-            }
-            else if(S_imm == 0b10001100)
-            {
-                rType(rd_D, rd_D, rs2_d,0x0, 0x20);
-            }
+            else if (S_imm == 0b10001111)
+                rType(rd_D, rd_D, rs2_d, 0x7, 0x00);
+
+            else if (S_imm == 0b10001110)
+                rType(rd_D, rd_D, rs2_d, 0x6, 0x00);
+
+            else if (S_imm == 0b10001101)
+                rType(rd_D, rd_D, rs2_d, 0x4, 0x00);
+            else if (S_imm == 0b10001100)
+                rType(rd_D, rd_D, rs2_d, 0x0, 0x20);
+
 
         case 2:
             if(funct4 == 0b1000)
@@ -608,7 +637,7 @@ void compressLog(unsigned int instHalf) {
                 Load(rd_rs1,0x2,0x2,CI_imm*4);
             }
         }
-
+    compressPrint(instHalf);
     }
 
 
@@ -652,13 +681,13 @@ int main(int argc, char *argv[]) {
                 {
                     instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) | (((unsigned char) memory[Pc + 2]) << 16) | (((unsigned char) memory[Pc + 3]) << 24);
                     Pc += 4;
-                    //instDecPrint(instWord1);
+                    instDecPrint(instWord1);
                 }
                 else
                 {
                     instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) ;
                     Pc += 2;
-                    //compressPrint(instWord1);
+                    compressPrint(instWord1);
 
                 }
 
@@ -681,8 +710,8 @@ int main(int argc, char *argv[]) {
                 else
                 {
                     instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) ;
-                    //Pc += 2;
-                    //compressLog(instWord1);
+                    Pc += 2;
+                    compressLog(instWord1);
 
                 }
             }
