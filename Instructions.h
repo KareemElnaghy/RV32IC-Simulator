@@ -81,108 +81,181 @@ void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int fun
     }
 }
 
-    int bType(unsigned int rs1, unsigned int rs2, unsigned int funct3,int16_t  b_imm, int instPC1) {
+    int bType(unsigned int rs1, unsigned int rs2, unsigned int funct3,int16_t  b_imm, bool comp) {
 
         int r;
+        if(!comp)
+        {
+            int instPC1 = Pc - 4;
+            int signedBit = (b_imm >> 12) & 1;
+            if (signedBit == 1) {
+                b_imm |= 0xE000;
+            }
 
-        int signedBit = (b_imm >> 12) & 1;
-        if (signedBit == 1) {
-            b_imm |= 0xE000;
+            switch (funct3) {
+                case 0: {
+                    if (registers[rs1].getData() == registers[rs2].getData())
+                        r = b_imm + instPC1;
+                    else
+                        r = Pc;
+                    break;
+                }
+
+                case 1: {
+                    if (registers[rs1].getData() != registers[rs2].getData())
+                        r = b_imm + instPC1;
+                    else
+                        r = Pc;
+                    break;
+                }
+
+                case 4: {
+                    if (registers[rs1].getData() < registers[rs2].getData())
+                        r = b_imm + instPC1;
+                    else
+                        r = Pc;
+                    break;
+                }
+
+                case 5: {
+                    if (registers[rs1].getData() >= registers[rs2].getData())
+                        r = b_imm + instPC1;
+                    else
+                        r = Pc;
+                    break;
+                }
+
+                case 6: {
+                    if (registers[rs1].getData() < registers[rs2].getData())
+                        r = b_imm + instPC1;
+                    else
+                        r = Pc;
+                    break;
+                }
+
+                case 7: {
+                    if (registers[rs1].getData() >= registers[rs2].getData())
+                        r = b_imm + instPC1;
+                    else
+                        r = Pc;
+                    break;
+                }
+
+                default:
+                    break;
+            }
         }
-
-        switch (funct3) {
-            case 0: {
-                if (registers[rs1].getData() == registers[rs2].getData())
-                    r = b_imm + instPC1;
-                else
-                    r = Pc;
-                break;
+        else
+        {
+            int instPC1 = Pc - 2;
+            int signedBit = (b_imm >> 12) & 1;
+            if (signedBit == 1) {
+                b_imm |= 0xE000;
             }
 
-            case 1: {
-                if (registers[rs1].getData() != registers[rs2].getData())
-                    r = b_imm + instPC1;
-                else
-                    r = Pc;
-                break;
-            }
+            switch (funct3) {
+                case 0: {
+                    if (registers[rs1].getData() == registers[rs2].getData())
+                        r = b_imm + instPC1;
+                    else
+                        r = Pc;
+                    break;
+                }
 
-            case 4: {
-                if (registers[rs1].getData() < registers[rs2].getData())
-                    r = b_imm + instPC1;
-                else
-                    r = Pc;
-                break;
-            }
+                case 1: {
+                    if (registers[rs1].getData() != registers[rs2].getData())
+                        r = b_imm + instPC1;
+                    else
+                        r = Pc;
+                    break;
+                }
 
-            case 5: {
-                if (registers[rs1].getData() >= registers[rs2].getData())
-                    r = b_imm + instPC1;
-                else
-                    r = Pc;
-                break;
-            }
+                case 4: {
+                    if (registers[rs1].getData() < registers[rs2].getData())
+                        r = b_imm + instPC1;
+                    else
+                        r = Pc;
+                    break;
+                }
 
-            case 6: {
-                if (registers[rs1].getData() < registers[rs2].getData())
-                    r = b_imm + instPC1;
-                else
-                    r = Pc;
-                break;
-            }
+                case 5: {
+                    if (registers[rs1].getData() >= registers[rs2].getData())
+                        r = b_imm + instPC1;
+                    else
+                        r = Pc;
+                    break;
+                }
 
-            case 7: {
-                if (registers[rs1].getData() >= registers[rs2].getData())
-                    r = b_imm + instPC1;
-                else
-                    r = Pc;
-                break;
-            }
+                case 6: {
+                    if (registers[rs1].getData() < registers[rs2].getData())
+                        r = b_imm + instPC1;
+                    else
+                        r = Pc;
+                    break;
+                }
 
-            default:
-                break;
+                case 7: {
+                    if (registers[rs1].getData() >= registers[rs2].getData())
+                        r = b_imm + instPC1;
+                    else
+                        r = Pc;
+                    break;
+                }
+
+                default:
+                    break;
+            }
         }
 
         return r;
 
     }
 
-int jType(unsigned int rd,int16_t  j_imm, int instPC1)
+int jType(unsigned int rd,int16_t  j_imm, bool comp)
 {
     int r;
-
-    int signedBit = (j_imm >> 12) & 1;
-    if(signedBit == 1) {
-        j_imm|= 0xE000;
-    }
-
+    int instPC1=0;
+    if(!comp)
+        instPC1=Pc-4;
+    else
+        instPC1=Pc-2;
+/*
+        int signedBit = (j_imm >> 12) & 1;
+        if (signedBit == 1) {
+            j_imm |= 0xE000;
+        }
+*/
         registers[rd].setData(Pc);
         r = j_imm + instPC1;
+
 
 
     return r;
 }
 
 
-int JalrType(unsigned int rs1, unsigned int rd,int16_t  J_imm, int instPC1)
+int JalrType(unsigned int rs1, unsigned int rd,int16_t  J_imm,  bool comp)
 {
     int r;
+    int instPC1=0;
+    if(!comp)
+        instPC1=Pc-4;
+    else
+        instPC1=Pc-2;
 
-    int signedBit = (J_imm >> 11) & 1;
-    if(signedBit == 1) {
-        J_imm|= 0xF000;
-    }
-
-        if(rd==0)
-        {
-                r = J_imm + registers[rs1].getData() ;
-
+        int signedBit = (J_imm >> 11) & 1;
+        if (signedBit == 1) {
+            J_imm |= 0xF000;
         }
-        else if(rd!=0)
-        {
-                registers[rd].setData(instPC1+4);
-                r = J_imm + registers[rs1].getData() ;
+
+        if (rd == 0) {
+            r = J_imm + registers[rs1].getData();
+
+        } else if (rd != 0) {
+            registers[rd].setData(Pc);
+            r = J_imm + registers[rs1].getData();
         }
+
 
     return r;
 }
