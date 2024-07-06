@@ -475,11 +475,11 @@ void compressLog(unsigned int instHalf) {
     rs2 = (instHalf >> 2) & 0x1F;
     opcode = instHalf & 3;
     funct3 = (instHalf>>13)&0x7;
-    funct4 = (instHalf >> 12)& 0x1F;
+    funct4 = (instHalf >> 12)& 0xF;
     rs1_D = (instHalf >> 7) & 0x7;
     rs1_D+=8;
     rd_rs1D = rs1_D;
-    rd_D = (instHalf>> 2) & 0x3;
+    rd_D = (instHalf>> 2) & 0x7;
     rd_D += 8;
     rs2_d = rd_D;
 
@@ -519,16 +519,16 @@ void compressLog(unsigned int instHalf) {
 
 
     //CL parsing
-    //int16_t J_imm= (instHalf >> 2) & 0x7FF;
+    int16_t J_imm= (instHalf >> 2) & 0x7FF;
     int16_t J_imm;
-    J_imm |= (instHalf >> 2) & 0x1 << 5;    // imm[5]
-    J_imm |= (instHalf >> 3) & 0x7 << 1;    // imm[3:1]
-    J_imm |= (instHalf >> 6) & 0x1 << 7;    // imm[7]
-    J_imm |= (instHalf >> 7) & 0x1 << 6;    // imm[6]
-    J_imm |= (instHalf >> 8) & 0x1 << 10;   // imm[10]
-    J_imm |= (instHalf >> 9) & 0x3 << 8;    // imm[9:8]
-    J_imm |= (instHalf >> 11) & 0x1 << 4;   // imm[4]
-    J_imm |= (instHalf >> 12) & 0x1 << 11;  // imm[11]
+    // J_imm |= (instHalf >> 2) & 0x1 << 5;    // imm[5]
+    // J_imm |= (instHalf >> 3) & 0x7 << 1;    // imm[3:1]
+    // J_imm |= (instHalf >> 6) & 0x1 << 7;    // imm[7]
+    // J_imm |= (instHalf >> 7) & 0x1 << 6;    // imm[6]
+    // J_imm |= (instHalf >> 8) & 0x1 << 10;   // imm[10]
+    // J_imm |= (instHalf >> 9) & 0x3 << 8;    // imm[9:8]
+    // J_imm |= (instHalf >> 11) & 0x1 << 4;   // imm[4]
+    // J_imm |= (instHalf >> 12) & 0x1 << 11;  // imm[11]
 
    // signedBit = (J_imm >> 10) & 1;
    // if(signedBit == 1)
