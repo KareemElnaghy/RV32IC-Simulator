@@ -347,7 +347,7 @@ void instDecExe(unsigned int instWord) {
         }
         else if(opcode == 0x13)
         {
-            iType(rd, rs1, funct3, I_imm, I_immU, shamt, opcode);
+            iType(rd, rs1, funct3,funct7, I_imm, I_immU, shamt, opcode);
         }
         else if(opcode == 0x03)
             Load(rd, rs1, funct3, I_imm);
@@ -357,7 +357,7 @@ void instDecExe(unsigned int instWord) {
         }
         else if(opcode == 0x63)
         {
-            Pc=bType(rd, rs1, rs2, funct3, b_imm, instPC1);
+            Pc=bType(rs1, rs2, funct3, b_imm, instPC1);
         }
         else if(opcode == 0x6F)
         {
@@ -380,16 +380,98 @@ void instDecExe(unsigned int instWord) {
 }
 void compressPrint(unsigned int instHalf)
 {
-    unsigned int instPC = Pc - 2;
-    unsigned int opcode = instHalf & 0x3;
-    unsigned int rd, rs1,funct3;
+unsigned int instPC = Pc - 2;
+    int signedBit;
+    unsigned int rd_rs1, rs2, rd_rs1D,rs1D,rd_D, funct3,funct4, opcode;
+    rd_rs1 = (instHalf >> 7)&0x1F;
+    rs2 = (instHalf >> 2) & 0x1F;
+    opcode = instHalf & 3;
+    funct3 = (instHalf>>13)&0x7;
+    funct4 = (instHalf >> 12)& 0x1F;
+    rs1D = (instHalf >> 7) & 0x7;
+    rd_rs1D = (instHalf >> 2) & 0x7;
+    rd_D = (instHalf>> 2) & 0x3;
+
+
+    //CI parsing
+    int16_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+    int16_t CI_immU = CI_imm;
+    signedBit = (CI_imm >> 5) & 1;
+    if(signedBit == 1)
+        CI_imm|= 0xFFC0;
+
+    //CIW parsing
+    int16_t CIW_imm = (instHalf >> 5) & 0xFF;
+    signedBit = (CIW_imm >> 7) & 1;
+    if(signedBit == 1)
+        CI_imm|= 0xFF00;
+
+    //CL parsing
+    int16_t CL_imm = ((instHalf >> 5) & 1) | ((instHalf >> 9) & 0x1E);
+    signedBit = (CL_imm >> 4) & 1;
+    if(signedBit == 1)
+        CI_imm|= 0xFF70;
+
+
+    switch (opcode){
+        case 0:
+            if(funct3==0) {
+                cout<<"\tc.addi4spn\t"<<registers[rd_D+8].getABI()<<", "<<4*CI_imm<<endl;
+
+            }
+        else if(funct3==0x2) {
+                cout<<"\tc.lw\t"<<registers[rd_D+8].getABI()<<", "<<CI_imm<<"("<<registers[rd_D+8].getABI()<<")"<<endl;
+        }
+
+        case 1:
+            if(funct3==0) {
+                if(rd_rs1==0)
+                    cout << "\tc.nop\t";
+                else
+                    cout<<"\tc.addi\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
+            }
+        else if(funct3==0x2) {
+            cout<<"\tc.li\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
+        }
+        else if(funct3==0x3) {
+            if(rd_rs1 == 0x2)
+                cout<<"\tc.addi16sp\t"<<hex<<CI_imm<<endl;
+            else
+                cout<<"\tc.lui\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
+
+        }
+
+        case 2:
+    if(funct4 == 1000)
+    {
+        if(rs2 == 0)
+            Pc=JalrType(rd_rs1, 0, 0, instPC);
+        else
+            rType(rd_rs1, 0, rs2, 0, 0x00);
+    }
+    else if(funct4 == 1001)
+    {
+        if(rs2 == 0)
+            Pc=JalrType(rd_rs1, 1, 0, instPC);
+        else
+            rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
+    }
+    else if(funct3==0)
+    {
+        cout<<"\tc.slli\t"<<registers[rd_rs1].getABI()<<", "<<CI_immU<<endl;
+    }
+    else if(funct3==0x2)
+    {
+        cout<<"\tc.lwsp\t"<<registers[rd_rs1].getABI()<<", "<<CI_imm<<endl;
+    }
+    }
 }
 
 
 void compressLog(unsigned int instHalf) {
     unsigned int instPC = Pc - 2;
     int signedBit;
-    unsigned int rd_rs1, rs2, rd_rs1D,rs1_D,rd_D,rs2_d, funct3,funct4, opcode;
+    unsigned int rd_rs1, rs2, rd_rs1D,rs1_D,rd_D,rs2_d, funct3,funct4,funct8, opcode;
     rd_rs1 = (instHalf >> 7)&0x1F;
     rs2 = (instHalf >> 2) & 0x1F;
     opcode = instHalf & 3;
@@ -402,17 +484,36 @@ void compressLog(unsigned int instHalf) {
 
 
     //CI parsing
-    int8_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+    int16_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+    int16_t CI_immU = CI_imm;
     signedBit = (CI_imm >> 5) & 1;
     if(signedBit == 1)
-        CI_imm|= 0xC0;
+        CI_imm|= 0xFFC0;
 
     //CIW parsing
     int16_t CIW_imm = (instHalf >> 5) & 0xFF;
+    signedBit = (CIW_imm >> 7) & 1;
+    if(signedBit == 1)
+        CI_imm|= 0xFF00;
 
     //CL parsing
     int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
     signedBit = (CL_imm >> 4) & 1;
+    if(signedBit == 1)
+        CI_imm|= 0xFF70;
+
+    //CB parsing
+
+
+    int16_t B_imm = (instHalf >> 2) & 0x1F;
+    B_imm |= (instHalf >> 10) & 0xF<<4;
+
+    int16_t shift=B_imm & 0x1F;
+    shift|= (B_imm >> 7) & 0x1;
+    funct8= B_imm & 0xFC00;
+
+    //CL parsing
+    int16_t J_imm= (instHalf >> 2) & 0x7FF;
     if(signedBit == 1)
         CI_imm|= 0x70;
 
@@ -431,13 +532,37 @@ void compressLog(unsigned int instHalf) {
     switch (opcode){
         case 0:
             if(funct3==0) {
-               iType(rd_D+8,0x2,0, 4*CIW_imm, 4*CIW_imm, 0, 0x13);
+                iType(rd_D+8,0x0,0,0, 4*CIW_imm, 4*CIW_imm, 0, 0x13);
             }
-        if(funct3==0x2) {
-
-        }
+            else if(funct3==0x2) {
+                Load(rd_D+8,rs1_D+8,0x2,CL_imm);
+            }
 
         case 1:
+            if(funct3==0) {
+                iType(0,0,0,0,0,0,0,0x13);
+            }
+            else if(funct3==0x2) {
+                iType(rd_rs1, 0,0,0,CI_imm,CI_imm,0,0x13);
+            }
+            else if(funct3==0x3) {
+                if(rd_rs1 == 0x2)
+                    iType(rd_rs1,rd_rs1,0,0,CI_imm*16,CI_imm*16,0,0x13);
+                else
+                    uType(rd_rs1,0x37,CI_imm);
+            if(funct3==1)
+                jType(1,J_imm,instPC);
+
+            else if(funct3==5)
+                jType(0,J_imm,instPC);
+            else if(funct3==6)
+                bType(rs1_D,0,0,B_imm,instPC);
+            else if(funct3==7)
+                bType(rs1_D,0,1,B_imm,instPC);
+            else if(funct8==0x20 | funct8==0x24)
+                iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
+            else if(funct8==0x25 | funct8==0x21)
+                iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
             if(S_imm == 0b10001111)
             {
                 rType(rd_D, rd_D, rs2_d,0x7, 0x00);
@@ -455,6 +580,9 @@ void compressLog(unsigned int instHalf) {
                 rType(rd_D, rd_D, rs2_d,0x0, 0x20);
             }
 
+
+
+            }
         case 2:
             if(funct4 == 0b1000)
             {
@@ -475,9 +603,18 @@ void compressLog(unsigned int instHalf) {
                 sType(rs2, 2, 0b011,4*SS_imm);
             }
 
-
+    else if(funct3==0)
+    {
+        iType(rd_rs1,rd_rs1,0x1,0,0,0,CI_immU,0x13);
+    }
+    else if(funct3==0x2)
+    {
+        Load(rd_rs1,0x2,0x2,CI_imm*4);
     }
 }
+
+    }
+
 
 
 int main(int argc, char *argv[]) {
