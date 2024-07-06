@@ -441,12 +441,14 @@ void compressPrint(unsigned int instHalf)
     switch (opcode){
         case 0:
             if(funct3==0) {
-                cout<<"\tC.ADDI4SP\t"<<registers[rd_D+8].getABI()<<", "<<4*CI_imm<<endl;
+                cout<<"\tC.ADDI4SP\t"<<registers[rd_D].getABI()<<", "<<4*CI_imm<<endl;
 
             }
-        else if(funct3==0x2) {
-                cout<<"\tC.LW\t"<<registers[rd_D+8].getABI()<<", "<<CI_imm<<"("<<registers[rd_D+8].getABI()<<")"<<endl;
-        }
+            else if(funct3==0x2) {
+                    cout<<"\tC.LW\t"<<registers[rd_D].getABI()<<", "<<CI_imm<<"("<<registers[rd_D].getABI()<<")"<<endl;
+            }
+            else if(funct3 == 0b110)
+                cout<<"\tC.SW\t"<<registers[rd_D].getABI()<<", "<<4*S_imm<<"("<<registers[rs2_d].getABI()<<")"<<endl;
 
         case 1:
             if(funct3==0) {
@@ -497,6 +499,11 @@ void compressPrint(unsigned int instHalf)
             else if(funct3==0x2)
             {
                 cout<<"\tC.LWSP\t"<<registers[rd_rs1].getABI()<<", "<<CI_imm<<endl;
+            }
+            else if (funct3 == 0b110)
+            {
+                sType(rs2, 2, 0b011,4*SS_imm);
+                cout<<"\tC.SWSP\t"<<registers[rs2].getABI()<<", "<<4*SS_imm<<"("<<registers[2].getABI()<<")"<<endl;
             }
     }
 }
@@ -569,6 +576,8 @@ void compressLog(unsigned int instHalf) {
             else if(funct3==0x2) {
                 Load(rd_D,rs1_D,0x2,CL_imm);
             }
+            else if(funct3 == 0b110)
+                sType(rs1_D, rs2_d, 0x2, 4*S_imm);
 
         case 1:
             if(funct3==0) {
