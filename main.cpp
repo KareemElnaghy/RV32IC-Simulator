@@ -521,13 +521,24 @@ void compressLog(unsigned int instHalf) {
     switch (opcode){
         case 0:
             if(funct3==0) {
-               iType(rd_D+8,0x2,0, 4*CIW_imm, 4*CIW_imm, 0, 0x13);
+                iType(rd_D+8,0x0,0, 4*CIW_imm, 4*CIW_imm, 0, 0x13);
             }
-        if(funct3==0x2) {
-
-        }
+            else if(funct3==0x2) {
+                Load(rd_D+8,rs1D+8,0x2,CL_imm);
+            }
 
         case 1:
+            if(funct3==0) {
+                iType(0,0,0,0,0,0,0x13);
+            }
+            else if(funct3==0x2) {
+                iType(rd_rs1, 0,0,CI_imm,CI_imm,0,0x13);
+            }
+            else if(funct3==0x3) {
+                if(rd_rs1 == 0x2)
+                    iType(rd_rs1,rd_rs1,0,CI_imm*16,CI_imm*16,0,0x13);
+                else
+                    uType(rd_rs1,0x37,CI_imm);
             if(funct3==1)
                 jType(1,J_imm,instPC);
 
@@ -544,6 +555,7 @@ void compressLog(unsigned int instHalf) {
 
 
 
+            }
         case 2:
             if(funct4 == 0b1000)
             {
@@ -564,6 +576,15 @@ void compressLog(unsigned int instHalf) {
                 sType(rs2, 2, 0b011,4*SS_imm);
             }
 
+    else if(funct3==0)
+    {
+        iType(rd_rs1,rd_rs1,0x1,0,0,CI_immU,0x13);
+    }
+    else if(funct3==0x2)
+    {
+        Load(rd_rs1,0x2,0x2,CI_imm*4);
+    }
+}
 
     }
 }
