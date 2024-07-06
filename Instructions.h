@@ -214,7 +214,7 @@ void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int fun
 int jType(unsigned int rd,int16_t  j_imm, bool comp)
 {
     int r;
-    int instPC1=0;
+    int instPC1;
     if(!comp)
         instPC1=Pc-4;
     else

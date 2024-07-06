@@ -339,7 +339,7 @@ void instDecExe(unsigned int instWord) {
 
     if(!exitProgram)
     {
-        printPrefix(instPC, instWord);
+        printPrefix(instPC1, instWord);
         std::cout << std::dec; // Switch back to decimal for register identifiers
         if (opcode == 0x33) { // R Instructions
             rType(rd, rs1, rs2, funct3,funct7);
@@ -360,7 +360,7 @@ void instDecExe(unsigned int instWord) {
         }
         else if(opcode == 0x6F)
         {
-            Pc=jType(rd, j_imm, instPC1);
+            Pc=jType(rd, j_imm, c);
         }
         else if(opcode == 0x37 || opcode == 0x17)
         {
@@ -368,7 +368,7 @@ void instDecExe(unsigned int instWord) {
         }
         else if(opcode == 0x67)
         {
-            Pc=JalrType(rs1, rd, J_imm, instPC1);
+            Pc=JalrType(rs1, rd, J_imm, c);
         }
         else if(opcode==0x73)
         {
@@ -377,7 +377,7 @@ void instDecExe(unsigned int instWord) {
         printIntInst(rd, rs1, rs2, opcode, funct3, funct7, b_imm, I_imm, I_immU, S_imm, j_imm, J_imm, U_imm, instPC1, shamt);
     }
 }
-void compressPrint(unsigned int instHalf)
+void compressPrint(uint16_t instHalf)
 {
 unsigned int instPC1 = Pc - 2;
     int signedBit;
@@ -391,6 +391,7 @@ unsigned int instPC1 = Pc - 2;
     rd_rs1D = (instHalf >> 2) & 0x7;
     rd_D = (instHalf>> 2) & 0x3;
 
+    int16_t cj = (instHalf >> 2) & 0x7FF;
 
     //CI parsing
     int16_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
@@ -406,11 +407,36 @@ unsigned int instPC1 = Pc - 2;
         CI_imm|= 0xFF00;
 
     //CL parsing
-    int16_t CL_imm = ((instHalf >> 5) & 1) | ((instHalf >> 9) & 0x1E);
+    int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
     signedBit = (CL_imm >> 4) & 1;
     if(signedBit == 1)
-        CI_imm|= 0xFF70;
+        CL_imm|= 0xFF70;
 
+
+    //CB parsing
+    int16_t B_imm = (instHalf >> 2) & 0x1F;
+    B_imm |= (instHalf >> 10) & 0xF<<4;
+
+    int16_t shift=B_imm & 0x1F;
+    shift|= (B_imm >> 7) & 0x1;
+    funct8= B_imm & 0xFC00;
+
+    signedBit = (B_imm >> 7) & 1;
+    if(signedBit == 1)
+        B_imm|= 0xFF00;
+
+    //CJ parsing
+    int16_t J_imm;
+
+    // Extract each bit and place it in the correct position in J_imm
+    J_imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) | ((instHalf>>2) & 0x20) | (instHalf&0x40) | ((instHalf>>2)&0x180) | ((instHalf <<1) & 0x200) | ((instHalf>>2)&0x400);
+
+    // Sign extend J_imm to 32 bits
+    if (J_imm & 0x0800) {
+        J_imm |= 0xF800; // Fill the upper 20 bits with 1s if the sign bit is set
+    }
+    printPrefix(instPC1, instHalf);
+    std::cout << std::dec; // Switch back to decimal for register identifiers
 
     switch (opcode){
         case 0:
@@ -432,6 +458,25 @@ unsigned int instPC1 = Pc - 2;
         else if(funct3==0x2) {
             cout<<"\tc.li\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
         }
+
+            else if(funct3==1) {
+
+                cout << "\tC.JAL\t" << "0x" << hex << setw(13) << J_imm*2 + instPC1 << endl;
+                //Pc=jType(1,J_imm,c);
+            }
+            else if(funct3==5)
+                cout << "\tJ\t"  << "0x " << hex<< setw(13)<< J_imm + instPC1 << endl;
+            else if(funct3==6)
+                cout << "\tBEQZ\t" << registers[rs1D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << B_imm + instPC1 << "\n";
+            else if(funct3==7)
+                cout << "\tBNEZ\t" << registers[rs1D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << B_imm + instPC1 << "\n";
+
+          //  else if(funct8==0x20 | funct8==0x24)
+             //   iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
+           // else if(funct8==0x25 | funct8==0x21)
+            //    iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
+
+
         else if(funct3==0x3) {
             if(rd_rs1 == 0x2)
                 cout<<"\tc.addi16sp\t"<<hex<<CI_imm<<endl;
@@ -444,14 +489,14 @@ unsigned int instPC1 = Pc - 2;
     if(funct4 == 0b1000)
     {
         if(rs2 == 0)
-            Pc=JalrType(rd_rs1, 0, 0, instPC);
+            Pc=JalrType(rd_rs1, 0, 0, instPC1);
         else
             rType(rd_rs1, 0, rs2, 0, 0x00);
     }
     else if(funct4 == 0b1001)
     {
         if(rs2 == 0)
-            Pc=JalrType(rd_rs1, 1, 0, instPC);
+            Pc=JalrType(rd_rs1, 1, 0, instPC1);
         else
             rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
     }
@@ -467,8 +512,8 @@ unsigned int instPC1 = Pc - 2;
 }
 
 
-void compressLog(unsigned int instHalf) {
-    unsigned int instPC = Pc - 2;
+void compressLog(uint16_t instHalf) {
+    bool c=true;
     int signedBit;
     unsigned int rd_rs1, rs2, rd_rs1D,rs1_D,rd_D,rs2_d, funct3,funct4,funct8, opcode;
     rd_rs1 = (instHalf >> 7)&0x1F;
@@ -483,6 +528,8 @@ void compressLog(unsigned int instHalf) {
     rd_D += 8;
     rs2_d = rd_D;
 
+
+int16_t cj = (instHalf >> 2) & 0x7FF;
 
     //CI parsing
     int16_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
@@ -501,11 +548,9 @@ void compressLog(unsigned int instHalf) {
     int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
     signedBit = (CL_imm >> 4) & 1;
     if(signedBit == 1)
-        CI_imm|= 0xFF70;
+        CL_imm|= 0xFF70;
 
     //CB parsing
-
-
     int16_t B_imm = (instHalf >> 2) & 0x1F;
     B_imm |= (instHalf >> 10) & 0xF<<4;
 
@@ -518,22 +563,17 @@ void compressLog(unsigned int instHalf) {
         B_imm|= 0xFF00;
 
 
-    //CL parsing
-    //int16_t J_imm= (instHalf >> 2) & 0x7FF;
+    //CJ parsing
     int16_t J_imm;
-    J_imm |= (instHalf >> 2) & 0x1 << 5;    // imm[5]
-    J_imm |= (instHalf >> 3) & 0x7 << 1;    // imm[3:1]
-    J_imm |= (instHalf >> 6) & 0x1 << 7;    // imm[7]
-    J_imm |= (instHalf >> 7) & 0x1 << 6;    // imm[6]
-    J_imm |= (instHalf >> 8) & 0x1 << 10;   // imm[10]
-    J_imm |= (instHalf >> 9) & 0x3 << 8;    // imm[9:8]
-    J_imm |= (instHalf >> 11) & 0x1 << 4;   // imm[4]
-    J_imm |= (instHalf >> 12) & 0x1 << 11;  // imm[11]
 
-   // signedBit = (J_imm >> 10) & 1;
-   // if(signedBit == 1)
-   //     J_imm|= 0xf800;
+    // Extract each bit and place it in the correct position in J_imm
+    J_imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) | ((instHalf>>2) & 0x20) | (instHalf&0x40) | ((instHalf>>2)&0x180) | ((instHalf <<1) & 0x200) | ((instHalf>>2)&0x400);
 
+
+    // Sign extend J_imm to 32 bits
+    if (J_imm & 0x0800) {
+        J_imm |= 0xF800; // Fill the upper 20 bits with 1s if the sign bit is set
+    }
 
     // CSS parsing
     int16_t SS_imm = (instHalf>>7)& 0x3F;
@@ -543,6 +583,7 @@ void compressLog(unsigned int instHalf) {
 
     // CS Parsing
     int16_t S_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C) | (funct3>>7);
+    compressPrint(instHalf);
 
     switch (opcode){
         case 0:
@@ -552,8 +593,6 @@ void compressLog(unsigned int instHalf) {
             else if(funct3==0x2) {
                 Load(rd_D,rs1_D,0x2,CL_imm);
             }
-            else if(funct3 == 0b110)
-                sType(rs1_D, rs2_d, 0x2, 4*S_imm);
 
         case 1:
             if(funct3==0) {
@@ -569,42 +608,46 @@ void compressLog(unsigned int instHalf) {
                     uType(rd_rs1, 0x37, CI_imm);
             }
             else if(funct3==1)
-                jType(1,J_imm,instPC);
-
+                Pc=jType(1,2*J_imm,c);
             else if(funct3==5)
-                jType(0,J_imm,instPC);
+                Pc=jType(0,2*J_imm,c);
             else if(funct3==6)
-                bType(rs1_D,0,0,B_imm,instPC);
+                Pc=bType(rs1_D,0,0,B_imm,c);
             else if(funct3==7)
-                bType(rs1_D,0,1,B_imm,instPC);
+               Pc= bType(rs1_D,0,1,B_imm,c);
             else if(funct8==0x20 | funct8==0x24)
                 iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
             else if(funct8==0x25 | funct8==0x21)
                 iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
-            else if (S_imm == 0b10001111)
-                rType(rd_D, rd_D, rs2_d, 0x7, 0x00);
-
-            else if (S_imm == 0b10001110)
-                rType(rd_D, rd_D, rs2_d, 0x6, 0x00);
-
-            else if (S_imm == 0b10001101)
-                rType(rd_D, rd_D, rs2_d, 0x4, 0x00);
-            else if (S_imm == 0b10001100)
-                rType(rd_D, rd_D, rs2_d, 0x0, 0x20);
-
+            else if(S_imm == 0b10001111)
+            {
+                rType(rd_D, rd_D, rs2_d,0x7, 0x00);
+            }
+            else if(S_imm == 0b10001110)
+            {
+                rType(rd_D, rd_D, rs2_d,0x6, 0x00);
+            }
+            else if(S_imm == 0b10001101)
+            {
+                rType(rd_D, rd_D, rs2_d,0x4, 0x00);
+            }
+            else if(S_imm == 0b10001100)
+            {
+                rType(rd_D, rd_D, rs2_d,0x0, 0x20);
+            }
 
         case 2:
             if(funct4 == 0b1000)
             {
                 if(rs2 == 0)
-                    Pc=JalrType(rd_rs1, 0, 0, instPC);
+                    Pc=JalrType(rd_rs1, 0, 0, c);
                 else
                     rType(rd_rs1, 0, rs2, 0, 0x00);
             }
             else if(funct4 == 0b1001)
             {
                 if(rs2 == 0)
-                    Pc=JalrType(rd_rs1, 1, 0, instPC);
+                    Pc=JalrType(rd_rs1, 1, 0, c);
                 else
                     rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
             }
@@ -622,7 +665,6 @@ void compressLog(unsigned int instHalf) {
                 Load(rd_rs1,0x2,0x2,CI_imm*4);
             }
         }
-    compressPrint(instHalf);
 
     }
 
@@ -630,7 +672,7 @@ void compressLog(unsigned int instHalf) {
 
 int main(int argc, char *argv[]) {
     unsigned int instWord1 = 0;
-    unsigned int instWord2 = 0; // Variable to store instruction word
+    uint16_t instHalf = 0; // Variable to store instruction word
     unsigned int check;
     ifstream iFile;
     if (argc < 1) emitError("use: rvsim <machine_code_file_name> [data_section_file_name]\n");
@@ -671,8 +713,8 @@ int main(int argc, char *argv[]) {
                 }
                 else
                 {
-                    instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) ;
-                    Pc += 2;
+                     instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) ;
+                   Pc += 2;
                     //compressPrint(instWord1);
 
                 }
@@ -680,12 +722,12 @@ int main(int argc, char *argv[]) {
             }
 
         }
+
         Pc=0;
         cout<<"log "<<endl;
         iFile.seekg(0, iFile.beg);
-        while (Pc < fsize || Pc < fsize)
+        while (Pc < fsize)
         {
-            if (Pc < fsize) {
                 check=(unsigned char) memory[Pc]&3;
                 if(check==3)
                 {
@@ -695,13 +737,15 @@ int main(int argc, char *argv[]) {
                 }
                 else
                 {
-                    instWord1 = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) ;
-                    //Pc += 2;
-                    //compressLog(instWord1);
+
+
+                    instHalf = (unsigned char) memory[Pc] | (((unsigned char) memory[Pc + 1]) << 8) ;
+                    Pc += 2;
+                    compressLog(instHalf);
 
                 }
             }
-        }
+
 
     }
     else emitError("Cannot access input file\n");
