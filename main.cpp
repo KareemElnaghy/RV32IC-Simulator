@@ -537,7 +537,7 @@ int16_t J_imm;
 void compressLog(uint16_t instHalf) {
     bool c=true;
     int signedBit;
-    unsigned int rd_rs1, rs2, rd_rs1D,rs1_D,rd_D,rs2_d, funct3,funct4,funct8, opcode;
+    unsigned int rd_rs1, rs2, rd_rs1D,rs1_D,rd_D,rs2_d, funct3,funct4,funct8,funct8_s, opcode;
     rd_rs1 = (instHalf >> 7)&0x1F;
     rs2 = (instHalf >> 2) & 0x1F;
     opcode = instHalf & 3;
@@ -550,6 +550,7 @@ void compressLog(uint16_t instHalf) {
     rd_D += 8;
     rs2_d = rd_D;
     int16_t imm;
+    funct8_s = ((instHalf>>5)&0x3) | ((instHalf>>8)&0xFC);
 
 //int16_t cj = (instHalf >> 2) & 0x7FF;
 //
@@ -617,6 +618,18 @@ void compressLog(uint16_t instHalf) {
                 //C.LW
                 Load(rd_D,rs1_D,0x2,CL_imm);
             }
+            else if(funct3 == 6)
+            {
+                // C.SW
+                imm |= ((instHalf >> 6)&0x1)<<2;
+                imm |= ((instHalf >> 10)&0x7)<<3;
+                imm |= ((instHalf >> 5) & 0x1)<<6;
+
+
+                if ((imm >> 6)&0x1)
+                    imm |= 0xF800;
+                sType(rs1_D,rs2_d, 0x2, imm);
+            }
             break;
         case 1:
             if(funct3==0) {
@@ -651,24 +664,24 @@ void compressLog(uint16_t instHalf) {
                 iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
             else if(funct8==0x25 | funct8==0x21)
                 iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
-            else if(S_imm == 0b10001111)
+            else if(funct8_s == 0b10001111)
             {
                 //C.AND
                 rType(rd_D, rd_D, rs2_d,0x7, 0x00);
             }
-            else if(S_imm == 0b10001110)
+            else if(funct8_s == 0b10001110)
             {
                 //C.OR
                 rType(rd_D, rd_D, rs2_d,0x6, 0x00);
             }
-            else if(S_imm == 0b10001101)
+            else if(funct8_s == 0b10001101)
             {
                 //C.XOR
                 rType(rd_D, rd_D, rs2_d,0x4, 0x00);
             }
-            else if(S_imm == 0b10001100)
+            else if(funct8_s == 0b10001100)
             {
-                ////C.SUB
+                //C.SUB
                 rType(rd_D, rd_D, rs2_d,0x0, 0x20);
             }
             break;
@@ -694,7 +707,13 @@ void compressLog(uint16_t instHalf) {
             else if (funct3 == 0b110)
             {
                 //C.SWSP
-                sType(rs2, 2, 0b011,4*SS_imm);
+                imm |= ((instHalf >> 9)&0xF)<<2;
+                imm |= ((instHalf >> 7)&0x3)<<6;
+
+                if ((imm >> 7)&0x1)
+                    imm |= 0xFF00;
+
+                sType(rs2, 2, 0b011,imm);
             }
 
             else if(funct3==0)
