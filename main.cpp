@@ -577,7 +577,7 @@ void compressLog(uint16_t instHalf) {
 //    // CS Parsing
 //    int16_t S_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C) | (funct3>>7);
 //    compressPrint(instHalf);
-
+if(!exitProgram){
     switch (opcode) {
         case 0:
             if (funct3 == 0) {
@@ -606,18 +606,19 @@ void compressLog(uint16_t instHalf) {
                     imm |= 0xF800;
                 sType(rs1_D, rs2_d, 0x2, imm);
             }
-            break;
+        break;
         case 1:
             if (funct3 == 0) {
                 //C.NOP - C.ADDI
-                imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+                imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 7) & 0x20);
                 signedBit = (imm >> 5) & 1;
                 if (signedBit == 1)
                     imm |= 0xFFC0;
                 iType(rd_rs1, rd_rs1, 0, 0, imm, 0, 0, 0x13);
             } else if (funct3 == 0x2) {
                 //C.LI
-                imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+                imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 7) & 0x20);
+
                 signedBit = (imm >> 5) & 1;
                 if (signedBit == 1)
                     imm |= 0xFFC0;
@@ -633,7 +634,7 @@ void compressLog(uint16_t instHalf) {
                     iType(rd_rs1, rd_rs1, 0, 0, imm, imm, 0, 0x13);
                 } else {
                     //C.LUI
-                    imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+                    imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 7) & 0x20);
                     signedBit = (imm >> 5) & 1;
                     if (signedBit == 1)
                         imm |= 0xFFC0;
@@ -675,57 +676,57 @@ void compressLog(uint16_t instHalf) {
                 } else if (funct8 == 0x25 | funct8 == 0x21) {
                     iType(rs1_D, rs1_D, 5, 0, imm, imm, shift, 0x13);
 
-                   iType(rs1_D, rs1_D, 5, 1, imm, imm, shift, 0x13);
-               }
-            else if(funct8==0x25 | funct8==0x21)
-            {
-                   iType(rs1_D, rs1_D, 5, 0, imm, imm, shift, 0x13);
-               }
-            else if(funct8_s == 0b10001111)
-            {
-                //C.AND
-                rType(rd_D, rd_D, rs2_d,0x7, 0x00);
-            }
-            else if(funct8_s == 0b10001110)
-            {
-                //C.OR
-                rType(rd_D, rd_D, rs2_d,0x6, 0x00);
-            }
-            else if(funct8_s == 0b10001101)
-            {
-                //C.XOR
-                rType(rd_D, rd_D, rs2_d,0x4, 0x00);
-            }
-            else if(funct8_s == 0b10001100)
-            {
-                //C.SUB
-                rType(rd_D, rd_D, rs2_d,0x0, 0x20);
-            }
-            break;
-        case 2:
-            if(funct4 == 0b1000)
-            {
-                if(rs2 == 0)
-                    //C.JR
-                    Pc=JalrType(rd_rs1, 0, 0, c);
-                else
-                    //C.MV
-                    rType(rd_rs1, 0, rs2, 0, 0x00);
-            }
-            else if(funct4 == 0b1001)
-            {
-                if(rs2 == 0)
-                    //C.JALR
-                    Pc=JalrType(rd_rs1, 1, 0, c);
-                else
-                    //C.ADD
-                    rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
-            }
-            else if (funct3 == 0b110)
-            {
-                //C.SWSP
-                imm |= ((instHalf >> 9)&0xF)<<2;
-                imm |= ((instHalf >> 7)&0x3)<<6;
+                    iType(rs1_D, rs1_D, 5, 1, imm, imm, shift, 0x13);
+                }
+                else if(funct8==0x25 | funct8==0x21)
+                {
+                    iType(rs1_D, rs1_D, 5, 0, imm, imm, shift, 0x13);
+                }
+                else if(funct8_s == 0b10001111)
+                {
+                    //C.AND
+                    rType(rd_D, rd_D, rs2_d,0x7, 0x00);
+                }
+                else if(funct8_s == 0b10001110)
+                {
+                    //C.OR
+                    rType(rd_D, rd_D, rs2_d,0x6, 0x00);
+                }
+                else if(funct8_s == 0b10001101)
+                {
+                    //C.XOR
+                    rType(rd_D, rd_D, rs2_d,0x4, 0x00);
+                }
+                else if(funct8_s == 0b10001100)
+                {
+                    //C.SUB
+                    rType(rd_D, rd_D, rs2_d,0x0, 0x20);
+                }
+                break;
+                case 2:
+                    if(funct4 == 0b1000)
+                    {
+                        if(rs2 == 0)
+                            //C.JR
+                                Pc=JalrType(rd_rs1, 0, 0, c);
+                        else
+                            //C.MV
+                                rType(rd_rs1, 0, rs2, 0, 0x00);
+                    }
+                    else if(funct4 == 0b1001)
+                    {
+                        if(rs2 == 0)
+                            //C.JALR
+                                Pc=JalrType(rd_rs1, 1, 0, c);
+                        else
+                            //C.ADD
+                                rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
+                    }
+                    else if (funct3 == 0b110)
+                    {
+                        //C.SWSP
+                        imm |= ((instHalf >> 9)&0xF)<<2;
+                        imm |= ((instHalf >> 7)&0x3)<<6;
 
                         if ((imm >> 7) & 0x1)
                             imm |= 0xFF00;
@@ -746,8 +747,10 @@ void compressLog(uint16_t instHalf) {
                     }
                 break;
 
-        }
-compressPrint(instHalf,imm);
+            }
+    }
+        compressPrint(instHalf,imm);
+
     }
 
 
