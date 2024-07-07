@@ -29,7 +29,7 @@ void printPrefix(unsigned int instA, unsigned int instW) {
               << instA << "\t0x" << std::setw(8) << instW;
 }
 
-void printIntInst(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int opcode, unsigned int funct3, unsigned int funct7,int16_t  b_imm,int16_t I_imm,int16_t I_immU, int16_t imm, int16_t j_imm,int16_t J_imm, int16_t U_imm, int instPC1, unsigned int shamt )
+void printIntInst(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int opcode, unsigned int funct3, unsigned int funct7,int16_t  b_imm,int16_t I_imm,int16_t I_immU, int16_t S_imm, int16_t j_imm,int16_t J_imm, int16_t U_imm, int instPC1, unsigned int shamt )
 {
     if(opcode == 0x33 )
     {
@@ -153,13 +153,13 @@ void printIntInst(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned 
     {
         switch (funct3) {
             case 0:
-                cout << "\tSB\t" << registers[rs2].getABI() << ", " << imm << "(" << registers[rs1].getABI() << ")" << "\n";
+                cout << "\tSB\t" << registers[rs2].getABI() << ", " << S_imm << "(" << registers[rs1].getABI() << ")" << "\n";
                 break;
             case 1:
-                cout << "\tSH\t" << registers[rs2].getABI() << ", " << imm << "(" << registers[rs1].getABI() << ")" << "\n";
+                cout << "\tSH\t" << registers[rs2].getABI() << ", " << S_imm << "(" << registers[rs1].getABI() << ")" << "\n";
                 break;
             case 2:
-                cout << "\tSW\t" << registers[rs2].getABI() << ", " << imm << "(" << registers[rs1].getABI() << ")" << "\n";
+                cout << "\tSW\t" << registers[rs2].getABI() << ", " << S_imm << "(" << registers[rs1].getABI() << ")" << "\n";
                 break;
             default:
                 cout << "\tUnknown Load Instruction \n";
@@ -446,12 +446,12 @@ void compressPrint(unsigned int instHalf, int16_t imm)
             else if(funct3==5)
                 cout << "\tC.J\t"  << "0x " << hex<< setw(13)<< imm + instPC << endl;
             else if(funct3==6)
-                cout << "\tC.BEQZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << B_imm + instPC << "\n";
+                cout << "\tC.BEQZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << imm + instPC << "\n";
             else if(funct3==7)
-                cout << "\tC.BNEZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << B_imm + instPC << "\n";
+                cout << "\tC.BNEZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << imm + instPC << "\n";
 
         //  else if(funct8==0x20 | funct8==0x24)
-            cout<<"\tC.SRLI\t"<<registers[rd_rs1].getABI()<<", "<<CI_immU<<endl;
+            cout<<"\tC.SRLI\t"<<registers[rd_rs1].getABI()<<", "<<imm<<endl;
         //   iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
         // else if(funct8==0x25 | funct8==0x21)
         //    iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
@@ -678,14 +678,12 @@ void compressLog(uint16_t instHalf) {
             {
 
 
-                   iType(rs1_D, rs1_D, 5, 1, B_imm, B_imm, shift, 0x13);
+                   iType(rs1_D, rs1_D, 5, 1, imm, imm, shift, 0x13);
                }
             else if(funct8==0x25 | funct8==0x21)
             {
-                   iType(rs1_D, rs1_D, 5, 0, B_imm, B_imm, shift, 0x13);
+                   iType(rs1_D, rs1_D, 5, 0, imm, imm, shift, 0x13);
                }
-            else if(S_imm == 0b10001111)
-                iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
             else if(funct8_s == 0b10001111)
             {
                 //C.AND
@@ -758,7 +756,7 @@ void compressLog(uint16_t instHalf) {
 
         }
 compressPrint(instHalf,imm);
-    }
+    }}
 
 
 
