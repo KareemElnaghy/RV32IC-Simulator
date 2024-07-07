@@ -438,11 +438,9 @@ void compressPrint(unsigned int instHalf, int16_t imm)
                 cout<<"\tC.XOR\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
             else if (imm == 0b10001100)
                 cout<<"\tC.SUB\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
-            else if(funct3==1) {
-
+            else if(funct3==1)
                 cout << "\tC.JAL\t" << "0x" << hex << setw(13) << imm + instPC << endl;
-                //Pc=jType(1,J_imm,c);
-            }
+
             else if(funct3==5)
                 cout << "\tC.J\t"  << "0x " << hex<< setw(13)<< imm + instPC << endl;
             else if(funct3==6)
@@ -455,6 +453,8 @@ void compressPrint(unsigned int instHalf, int16_t imm)
 
         else if(funct8==0x25 | funct8==0x21)
             cout<<"\tC.SRAI\t"<<registers[rd_rs1].getABI()<<", "<<imm<<endl;
+            else if (funct8 == 0x26 | funct8 == 0x22)
+                cout << "\tAND\t" << registers[rd_rs1].getABI() << ", " << imm<< "\n";
         break;
 
         case 2:
@@ -491,8 +491,6 @@ void compressPrint(unsigned int instHalf, int16_t imm)
 }
 
 
-
-
 void compressLog(uint16_t instHalf) {
     bool c = true;
     int signedBit;
@@ -511,9 +509,6 @@ void compressLog(uint16_t instHalf) {
     int16_t imm;
     funct8_s = ((instHalf >> 5) & 0x3) | ((instHalf >> 8) & 0xFC);
     uint16_t immU;
-    int16_t shift;
-    shift = ((instHalf >> 2) & 0x1F);
-    shift |= ((instHalf >> 7) & 0x1) << 5;
     funct8 = (instHalf >> 10) & 0x3 | ((instHalf >> 13) & 0x7) << 3;
 //int16_t cj = (instHalf >> 2) & 0x7FF;
 //
@@ -648,7 +643,8 @@ void compressLog(uint16_t instHalf) {
                     imm |= 0xF000;
 
                     Pc = jType(1, imm, c);
-                } else if (funct3 == 5) {
+                } else if (funct3 == 5)
+                {
                     imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) |
                           ((instHalf >> 2) & 0x20) | (instHalf & 0x40) | ((instHalf >> 2) & 0x180) |
                           ((instHalf << 1) & 0x200) | ((instHalf >> 2) & 0x400);
@@ -669,13 +665,24 @@ void compressLog(uint16_t instHalf) {
                     //sign extension
 
                     Pc = bType(rs1_D, 0, 1, imm, c);
-                } else if (funct8 == 0x20 | funct8 == 0x24) {
-
-                    iType(rs1_D, rs1_D, 5, 1, imm, imm, shift, 0x13);
+                } else if (funct8 == 0x20 | funct8 == 0x24)
+                {
+                    immU = ((instHalf >> 2) & 0x1F);
+                    immU |= ((instHalf >> 7) & 0x1) << 5;
+                    iType(rs1_D, rs1_D, 5, 1, imm, imm, immU, 0x13);
                 } else if (funct8 == 0x25 | funct8 == 0x21) {
-                    iType(rs1_D, rs1_D, 5, 0, imm, imm, shift, 0x13);
+                    immU = ((instHalf >> 2) & 0x1F);
+                    immU |= ((instHalf >> 7) & 0x1) << 5;
+                    iType(rs1_D, rs1_D, 5, 0, imm, imm, immU, 0x13);
 
-                } else if (funct8_s == 0b10001111) {
+                }
+                else if (funct8 == 0x26 | funct8 == 0x22) {
+                    imm = ((instHalf >> 2) & 0x1F);
+                    imm |= ((instHalf >> 7) & 0x1) << 5;
+                    iType(rs1_D, rs1_D, 7, 0, imm, imm, immU, 0x13);
+
+                }
+                else if (funct8_s == 0b10001111) {
                     //C.AND
                     rType(rd_D, rd_D, rs2_d, 0x7, 0x00);
                 } else if (funct8_s == 0b10001110) {
