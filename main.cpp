@@ -29,7 +29,7 @@ void printPrefix(unsigned int instA, unsigned int instW) {
               << instA << "\t0x" << std::setw(8) << instW;
 }
 
-void printIntInst(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int opcode, unsigned int funct3, unsigned int funct7,int16_t  b_imm,int16_t I_imm,int16_t I_immU, int16_t S_imm, int16_t j_imm,int16_t J_imm, int16_t U_imm, int instPC1, unsigned int shamt )
+void printIntInst(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int opcode, unsigned int funct3, unsigned int funct7,int16_t  b_imm,int16_t I_imm,int16_t I_immU, int16_t imm, int16_t j_imm,int16_t J_imm, int16_t U_imm, int instPC1, unsigned int shamt )
 {
     if(opcode == 0x33 )
     {
@@ -153,13 +153,13 @@ void printIntInst(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned 
     {
         switch (funct3) {
             case 0:
-                cout << "\tSB\t" << registers[rs2].getABI() << ", " << S_imm << "(" << registers[rs1].getABI() << ")" << "\n";
+                cout << "\tSB\t" << registers[rs2].getABI() << ", " << imm << "(" << registers[rs1].getABI() << ")" << "\n";
                 break;
             case 1:
-                cout << "\tSH\t" << registers[rs2].getABI() << ", " << S_imm << "(" << registers[rs1].getABI() << ")" << "\n";
+                cout << "\tSH\t" << registers[rs2].getABI() << ", " << imm << "(" << registers[rs1].getABI() << ")" << "\n";
                 break;
             case 2:
-                cout << "\tSW\t" << registers[rs2].getABI() << ", " << S_imm << "(" << registers[rs1].getABI() << ")" << "\n";
+                cout << "\tSW\t" << registers[rs2].getABI() << ", " << imm << "(" << registers[rs1].getABI() << ")" << "\n";
                 break;
             default:
                 cout << "\tUnknown Load Instruction \n";
@@ -266,9 +266,9 @@ void instDecPrint(unsigned int instWord) {
 
 
     // S Type
-    int32_t S_imm;
-    S_imm = (instWord >> 7) & 0x0000001F;
-    S_imm |= (instWord>>13) & 0x0007F000;
+    int32_t imm;
+    imm = (instWord >> 7) & 0x0000001F;
+    imm |= (instWord>>13) & 0x0007F000;
 
     // U Type
     int U_imm;
@@ -285,7 +285,7 @@ void instDecPrint(unsigned int instWord) {
     J_imm = ((instWord >> 20) & 0xFFF);
 
     printPrefix(instPC1, instWord);
-    printIntInst(rd, rs1, rs2, opcode, funct3, funct7, b_imm, I_imm, I_immU, S_imm, j_imm, J_imm, U_imm, instPC1, shamt);
+    printIntInst(rd, rs1, rs2, opcode, funct3, funct7, b_imm, I_imm, I_immU, imm, j_imm, J_imm, U_imm, instPC1, shamt);
 
 }
 
@@ -319,9 +319,9 @@ void instDecExe(unsigned int instWord) {
 
 
     // S Type
-    int32_t S_imm;
-    S_imm = (instWord >> 7) & 0x0000001F;
-    S_imm |= (instWord>>13) & 0x0007F000;
+    int32_t imm;
+    imm = (instWord >> 7) & 0x0000001F;
+    imm |= (instWord>>13) & 0x0007F000;
 
     // U Type
     int U_imm;
@@ -352,7 +352,7 @@ void instDecExe(unsigned int instWord) {
             Load(rd, rs1, funct3, I_imm);
         else if(opcode == 0x23)
         {
-            sType(rs1, rs2, funct3, S_imm);
+            sType(rs1, rs2, funct3, imm);
         }
         else if(opcode == 0x63)
         {
@@ -374,12 +374,11 @@ void instDecExe(unsigned int instWord) {
         {
             exitProgram = ecall();
         }
-        printIntInst(rd, rs1, rs2, opcode, funct3, funct7, b_imm, I_imm, I_immU, S_imm, j_imm, J_imm, U_imm, instPC1, shamt);
+        printIntInst(rd, rs1, rs2, opcode, funct3, funct7, b_imm, I_imm, I_immU, imm, j_imm, J_imm, U_imm, instPC1, shamt);
     }
 }
-void compressPrint(unsigned int instHalf)
+void compressPrint(unsigned int instHalf, int16_t imm)
 {
-    std::cout << std::dec; // Switch back to decimal for register identifiers
     unsigned int instPC = Pc - 2;
     int signedBit;
     unsigned int rd_rs1, rs2, rd_rs1D,rs1_D,rd_D,rs2_d, funct3,funct4,funct8, opcode;
@@ -396,101 +395,56 @@ void compressPrint(unsigned int instHalf)
     rs2_d = rd_D;
 
 
-    //CI parsing
-    int16_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
-    int16_t CI_immU = CI_imm;
-    signedBit = (CI_imm >> 5) & 1;
-    if(signedBit == 1)
-        CI_imm|= 0xFFC0;
-
-    //CIW parsing
-    int16_t CIW_imm = (instHalf >> 5) & 0xFF;
-    signedBit = (CIW_imm >> 7) & 1;
-    if(signedBit == 1)
-        CI_imm|= 0xFF00;
-
-    //CL parsing
-    int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
-    signedBit = (CL_imm >> 4) & 1;
-    if(signedBit == 1)
-        CI_imm|= 0xFF70;
-
-    //CB parsing
-
-    int16_t B_imm = (instHalf >> 2) & 0x1F;
-    B_imm |= (instHalf >> 10) & 0xF<<4;
-
-    int16_t shift=B_imm & 0x1F;
-    shift|= (B_imm >> 7) & 0x1;
-    funct8= B_imm & 0xFC00;
-
-int16_t J_imm;
-    // Extract each bit and place it in the correct position in J_imm
-    J_imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) | ((instHalf>>2) & 0x20) | (instHalf&0x40) | ((instHalf>>2)&0x180) | ((instHalf <<1) & 0x200) | ((instHalf>>2)&0x400);
-
-
-    // Sign extend J_imm to 16 bits
-    if (J_imm & 0x0800) {
-        J_imm |= 0xF800;
-    }
-
-    // CSS parsing
-    int16_t SS_imm = (instHalf>>7)& 0x3F;
-    signedBit = (SS_imm >> 7) & 1;
-    if(signedBit == 1)
-        SS_imm|= 0x70;
-
-    // CS Parsing
-    int16_t S_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C) | (funct3>>7);
-
+    
     printPrefix(instPC, instHalf);
 
     switch (opcode){
         case 0:
             if(funct3==0) {
-                cout<<"\tC.ADDI4SP\t"<<registers[rd_D].getABI()<<", "<<4*CI_imm<<endl;
+                cout<<"\tC.ADDI4SP\t"<<registers[rd_D].getABI()<<", "<<imm<<endl;
 
             }
             else if(funct3==0x2) {
-                    cout<<"\tC.LW\t"<<registers[rd_D].getABI()<<", "<<CI_imm<<"("<<registers[rd_D].getABI()<<")"<<endl;
+                    cout<<"\tC.LW\t"<<registers[rd_D].getABI()<<", "<<imm<<"("<<registers[rd_D].getABI()<<")"<<endl;
             }
             else if(funct3 == 0b110)
-                cout<<"\tC.SW\t"<<registers[rd_D].getABI()<<", "<<4*S_imm<<"("<<registers[rs2_d].getABI()<<")"<<endl;
+                cout<<"\tC.SW\t"<<registers[rd_D].getABI()<<", "<<imm<<"("<<registers[rs2_d].getABI()<<")"<<endl;
+        break;
 
         case 1:
             if(funct3==0) {
                 if(rd_rs1==0)
                     cout << "\tC.NOP\t";
                 else
-                    cout<<"\tC.ADDI\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
+                    cout<<"\tC.ADDI\t"<<registers[rd_rs1].getABI()<<", "<<hex<<imm<<endl;
             }
             else if(funct3==0x2) {
-                cout<<"\tC.LI\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
+                cout<<"\tC.LI\t"<<registers[rd_rs1].getABI()<<", "<<hex<<imm<<endl;
             }
             else if(funct3==0x3) {
                 if(rd_rs1 == 0x2)
-                    cout<<"\tC.ADDI16SP\t"<<hex<<CI_imm<<endl;
+                    cout<<"\tC.ADDI16SP\t"<<hex<<imm<<endl;
                 else
-                    cout<<"\tC.LUI\t"<<registers[rd_rs1].getABI()<<", "<<hex<<CI_imm<<endl;
+                    cout<<"\tC.LUI\t"<<registers[rd_rs1].getABI()<<", "<<hex<<imm<<endl;
 
             }
-            else if (S_imm == 0b10001111)
+            else if (imm == 0b10001111)
                 cout<<"\tC.AND\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
 
-            else if (S_imm == 0b10001110)
+            else if (imm == 0b10001110)
                 cout<<"\tC.OR\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
 
-            else if (S_imm == 0b10001101)
+            else if (imm == 0b10001101)
                 cout<<"\tC.XOR\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
-            else if (S_imm == 0b10001100)
+            else if (imm == 0b10001100)
                 cout<<"\tC.SUB\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
             else if(funct3==1) {
 
-                cout << "\tC.JAL\t" << "0x" << hex << setw(13) << J_imm*2 + instPC << endl;
+                cout << "\tC.JAL\t" << "0x" << hex << setw(13) << imm + instPC << endl;
                 //Pc=jType(1,J_imm,c);
             }
             else if(funct3==5)
-                cout << "\tC.J\t"  << "0x " << hex<< setw(13)<< J_imm + instPC << endl;
+                cout << "\tC.J\t"  << "0x " << hex<< setw(13)<< imm + instPC << endl;
             else if(funct3==6)
                 cout << "\tC.BEQZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << B_imm + instPC << "\n";
             else if(funct3==7)
@@ -500,6 +454,8 @@ int16_t J_imm;
         //   iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
         // else if(funct8==0x25 | funct8==0x21)
         //    iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
+        break;
+
         case 2:
             if(funct4 == 0b1000)
             {
@@ -517,17 +473,19 @@ int16_t J_imm;
             }
             else if(funct3==0)
             {
-                cout<<"\tC.SLLI\t"<<registers[rd_rs1].getABI()<<", "<<CI_immU<<endl;
+                cout<<"\tC.SLLI\t"<<registers[rd_rs1].getABI()<<", "<<imm<<endl;
             }
             else if(funct3==0x2)
             {
-                cout<<"\tC.LWSP\t"<<registers[rd_rs1].getABI()<<", "<<CI_imm<<endl;
+                cout<<"\tC.LWSP\t"<<registers[rd_rs1].getABI()<<", "<<imm<<endl;
             }
             else if (funct3 == 0b110)
             {
-                sType(rs2, 2, 0b011,4*SS_imm);
-                cout<<"\tC.SWSP\t"<<registers[rs2].getABI()<<", "<<4*SS_imm<<"("<<registers[2].getABI()<<")"<<endl;
+                sType(rs2, 2, 0b011,imm);
+                cout<<"\tC.SWSP\t"<<registers[rs2].getABI()<<", "<<imm<<"("<<registers[2].getABI()<<")"<<endl;
             }
+        break;
+
     }
 }
 
@@ -552,61 +510,6 @@ void compressLog(uint16_t instHalf) {
     int16_t imm;
     uint16_t immU;
 
-//int16_t cj = (instHalf >> 2) & 0x7FF;
-//
-//    //CI parsing
-//    int16_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
-//    int16_t CI_immU = CI_imm;
-//    signedBit = (CI_imm >> 5) & 1;
-//    if(signedBit == 1)
-//        CI_imm|= 0xFFC0;
-//
-//    //CIW parsing
-//    int16_t CIW_imm = (instHalf >> 5) & 0xFF;
-//    signedBit = (CIW_imm >> 7) & 1;
-//    if(signedBit == 1)
-//        CI_imm|= 0xFF00;
-//
-//    //CL parsing
-//    int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
-//    signedBit = (CL_imm >> 4) & 1;
-//    if(signedBit == 1)
-//        CL_imm|= 0xFF70;
-//
-//    //CB parsing
-//    int16_t B_imm = (instHalf >> 2) & 0x1F;
-//    B_imm |= (instHalf >> 10) & 0xF<<4;
-//
-//    int16_t shift=B_imm & 0x1F;
-//    shift|= (B_imm >> 7) & 0x1;
-//    funct8= B_imm & 0xFC00;
-//
-//    signedBit = (B_imm >> 7) & 1;
-//    if(signedBit == 1)
-//        B_imm|= 0xFF00;
-//
-//
-//    //CJ parsing
-//    int16_t J_imm;
-//
-//    // Extract each bit and place it in the correct position in J_imm
-//    J_imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) | ((instHalf>>2) & 0x20) | (instHalf&0x40) | ((instHalf>>2)&0x180) | ((instHalf <<1) & 0x200) | ((instHalf>>2)&0x400);
-//
-//
-//    // Sign extend J_imm to 16 bits
-//    if (J_imm & 0x0800) {
-//        J_imm |= 0xF800;
-//    }
-//
-//    // CSS parsing
-//    int16_t SS_imm = (instHalf>>7)& 0x3F;
-//    signedBit = (SS_imm >> 7) & 1;
-//    if(signedBit == 1)
-//        SS_imm|= 0x70;
-//
-//    // CS Parsing
-//    int16_t S_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C) | (funct3>>7);
-//    compressPrint(instHalf);
 
     switch (opcode){
         case 0:
@@ -678,22 +581,22 @@ void compressLog(uint16_t instHalf) {
                 iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
             else if(funct8==0x25 | funct8==0x21)
                 iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
-            else if(S_imm == 0b10001111)
+            else if(imm == 0b10001111)
             {
                 //C.AND
                 rType(rd_D, rd_D, rs2_d,0x7, 0x00);
             }
-            else if(S_imm == 0b10001110)
+            else if(imm == 0b10001110)
             {
                 //C.OR
                 rType(rd_D, rd_D, rs2_d,0x6, 0x00);
             }
-            else if(S_imm == 0b10001101)
+            else if(imm == 0b10001101)
             {
                 //C.XOR
                 rType(rd_D, rd_D, rs2_d,0x4, 0x00);
             }
-            else if(S_imm == 0b10001100)
+            else if(imm == 0b10001100)
             {
                 //C.SUB
                 rType(rd_D, rd_D, rs2_d,0x0, 0x20);
@@ -721,7 +624,7 @@ void compressLog(uint16_t instHalf) {
             else if (funct3 == 0b110)
             {
                 //C.SWSP
-                sType(rs2, 2, 0b011,4*SS_imm);
+                sType(rs2, 2, 0b011,imm);
             }
 
             else if(funct3==0)
@@ -740,8 +643,10 @@ void compressLog(uint16_t instHalf) {
                     imm |= 0xFF00;
                 Load(rd_rs1,0x2,0x2,imm);
             }
-        }
+        break;
 
+        }
+compressPrint(instHalf,imm);
     }
 
 
