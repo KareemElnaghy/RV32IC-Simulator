@@ -92,8 +92,9 @@ void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int fun
 //    }
         int r;
         int instPC1;
-        if(!comp)
+        if(!comp) {
             instPC1 = Pc - 4;
+        }
         else
             instPC1 = Pc - 2;
 
@@ -128,10 +129,14 @@ void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int fun
                 }
 
                 case 5: {
-                    if (registers[rs1].getData() >= registers[rs2].getData())
+                    if (registers[rs1].getData() >= registers[rs2].getData()) {
                         r = b_imm + instPC1;
-                    else
+
+                    }
+                    else {
                         r = Pc;
+
+                    }
                     break;
                 }
 
@@ -170,12 +175,11 @@ int jType(unsigned int rd,int16_t  j_imm, bool comp)
         instPC1=Pc-4;
     else
         instPC1=Pc-2;
-/*
+
         int signedBit = (j_imm >> 12) & 1;
         if (signedBit == 1) {
             j_imm |= 0xE000;
         }
-*/
         registers[rd].setData(Pc);
         r = j_imm + instPC1;
 
@@ -202,6 +206,7 @@ int JalrType(unsigned int rs1, unsigned int rd,int16_t  J_imm,  bool comp)
         if (rd == 0) {
             r = J_imm + registers[rs1].getData();
 
+
         } else if (rd != 0) {
             registers[rd].setData(Pc);
             r = J_imm + registers[rs1].getData();
@@ -214,7 +219,7 @@ int JalrType(unsigned int rs1, unsigned int rd,int16_t  J_imm,  bool comp)
 
 void iType(unsigned int rd, unsigned int rs1, unsigned int funct3,unsigned int funct7, int16_t I_imm,int16_t I_immU,unsigned int shamt, unsigned int opcode)
 {
-    int16_t temp;
+    int32_t temp;
     unsigned int tempU;
 
     int signedBit = (I_imm >> 11) & 1;
@@ -297,9 +302,13 @@ void sType(unsigned int rs1, unsigned int rs2, unsigned int funct3, int16_t S_im
             break;
         case 2:
             address = S_imm + registers[rs1].getDataU();
-            for (int i = 0; i < 4; i++) {
-                memory[address + i] = (registers[rs2].getData() >> (i * 8)) & 0xFF;
-            }
+
+
+                memory[address] = (registers[rs2].getData()) & 0xFF;
+                memory[address+1] = (registers[rs2].getData() >> (8)) & 0xFF;
+                memory[address+2] = (registers[rs2].getData() >> (16)) & 0xFF;
+                memory[address+3] =  (registers[rs2].getData() >> (24)) & 0xFF;
+
             break;
         default:
             // No operation for unknown instruction
@@ -334,7 +343,7 @@ void uType(unsigned int rd, unsigned int opcode, int16_t U_imm) {
 
 void Load(unsigned int rd, unsigned int rs1, unsigned int funct3, int16_t I_imm)
 {
-   int address;
+   uint32_t address;
    int32_t temp;
    int signedTempBit;
 
