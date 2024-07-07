@@ -551,9 +551,9 @@ void compressLog(uint16_t instHalf) {
                 if (rd_rs1 == 0x2) {
                     //C.ADDI16SP
                     imm = ((instHalf>>2)&0x10) | ((instHalf<<3)&0x20)|((instHalf<<1)&0x40) | ((instHalf<<4)&0x180)| ((instHalf>>3)&0x200);
-                    signedBit = (instHalf >> 8) & 1;
+                    signedBit = (instHalf >> 9) & 1;
                     if(signedBit==1)
-                        imm|=0xF700;
+                        imm|=0xFC00;
                     iType(rd_rs1, rd_rs1, 0, 0, imm, imm, 0, 0x13);
                 }
                 else {
