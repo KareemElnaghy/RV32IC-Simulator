@@ -610,32 +610,42 @@ void compressLog(uint16_t instHalf) {
     switch (opcode){
         case 0:
             if(funct3==0) {
+                //C.ADDI4SP
                 iType(rd_D,0x0,0,0, 4*CIW_imm, 4*CIW_imm, 0, 0x13);
             }
             else if(funct3==0x2) {
+                //C.LW
                 Load(rd_D,rs1_D,0x2,CL_imm);
             }
             break;
         case 1:
             if(funct3==0) {
-                iType(0,0,0,0,0,0,0,0x13);
+                //C.NOP - C.ADDI
+                iType(rd_rs1,rd_rs1,0,0,imm,0,0,0x13);
             }
             else if(funct3==0x2) {
+                //C.LI
                 iType(rd_rs1, 0,0,0,CI_imm,CI_imm,0,0x13);
             }
             else if(funct3==0x3) {
                 if (rd_rs1 == 0x2)
+                    //C.ADDI16SP
                     iType(rd_rs1, rd_rs1, 0, 0, CI_imm * 16, CI_imm * 16, 0, 0x13);
                 else
+                    //C.LUI
                     uType(rd_rs1, 0x37, CI_imm);
             }
             else if(funct3==1)
+                //C.JAL
                 Pc=jType(1,2*J_imm,c);
             else if(funct3==5)
+                //C.J
                 Pc=jType(0,2*J_imm,c);
             else if(funct3==6)
+                //C.BEQZ
                 Pc=bType(rs1_D,0,0,B_imm,c);
             else if(funct3==7)
+                //C.BNEZ
                Pc= bType(rs1_D,0,1,B_imm,c);
             else if(funct8==0x20 | funct8==0x24)
                 iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
@@ -643,18 +653,22 @@ void compressLog(uint16_t instHalf) {
                 iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
             else if(S_imm == 0b10001111)
             {
+                //C.AND
                 rType(rd_D, rd_D, rs2_d,0x7, 0x00);
             }
             else if(S_imm == 0b10001110)
             {
+                //C.OR
                 rType(rd_D, rd_D, rs2_d,0x6, 0x00);
             }
             else if(S_imm == 0b10001101)
             {
+                //C.XOR
                 rType(rd_D, rd_D, rs2_d,0x4, 0x00);
             }
             else if(S_imm == 0b10001100)
             {
+                ////C.SUB
                 rType(rd_D, rd_D, rs2_d,0x0, 0x20);
             }
             break;
@@ -662,28 +676,35 @@ void compressLog(uint16_t instHalf) {
             if(funct4 == 0b1000)
             {
                 if(rs2 == 0)
+                    //C.JR
                     Pc=JalrType(rd_rs1, 0, 0, c);
                 else
+                    //C.MV
                     rType(rd_rs1, 0, rs2, 0, 0x00);
             }
             else if(funct4 == 0b1001)
             {
                 if(rs2 == 0)
+                    //C.JALR
                     Pc=JalrType(rd_rs1, 1, 0, c);
                 else
+                    //C.ADD
                     rType(rd_rs1, rd_rs1, rs2, 0, 0x00);
             }
             else if (funct3 == 0b110)
             {
+                //C.SWSP
                 sType(rs2, 2, 0b011,4*SS_imm);
             }
 
             else if(funct3==0)
             {
+                //C.SLLI
                 iType(rd_rs1,rd_rs1,0x1,0,0,0,CI_immU,0x13);
             }
             else if(funct3==0x2)
             {
+                //C.LWSP
                 Load(rd_rs1,0x2,0x2,CI_imm*4);
             }
         }
