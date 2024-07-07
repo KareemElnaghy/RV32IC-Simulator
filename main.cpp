@@ -550,6 +550,7 @@ void compressLog(uint16_t instHalf) {
     rd_D += 8;
     rs2_d = rd_D;
     int16_t imm;
+    uint16_t immU;
 
 //int16_t cj = (instHalf >> 2) & 0x7FF;
 //
@@ -610,30 +611,56 @@ void compressLog(uint16_t instHalf) {
     switch (opcode){
         case 0:
             if(funct3==0) {
-                //C.ADDI4SP
-                iType(rd_D,0x0,0,0, 4*CIW_imm, 4*CIW_imm, 0, 0x13);
+                //C.ADDI4SPN
+                imm= ((instHalf>>4)& 0x4) | ((instHalf>>2)&0x8) | ((instHalf>>7)&0x30) | ((instHalf>>1)&0x3C0);
+                signedBit = (imm >> 9) & 1;
+                if(signedBit==1)
+                    imm|= 0xFC00;
+                iType(rd_D,0x0,0,0, imm, imm, 0, 0x13);
             }
             else if(funct3==0x2) {
                 //C.LW
-                Load(rd_D,rs1_D,0x2,CL_imm);
+                imm = ((instHalf>>4)&0x4) | ((instHalf>>7)&0x38) | ((instHalf<<1)&0x40);
+                signedBit = (imm >> 6) &1;
+                if(signedBit==1)
+                    imm|=0xFF80;
+                Load(rd_D,rs1_D,0x2,imm);
             }
             break;
         case 1:
             if(funct3==0) {
                 //C.NOP - C.ADDI
+                imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+                signedBit = (imm >> 5) & 1;
+                if(signedBit == 1)
+                    imm|= 0xFFC0;
                 iType(rd_rs1,rd_rs1,0,0,imm,0,0,0x13);
             }
             else if(funct3==0x2) {
                 //C.LI
-                iType(rd_rs1, 0,0,0,CI_imm,CI_imm,0,0x13);
+                imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+                signedBit = (imm >> 5) & 1;
+                  if(signedBit == 1)
+                     imm|= 0xFFC0;
+                iType(rd_rs1, 0,0,0,imm,imm,0,0x13);
             }
             else if(funct3==0x3) {
-                if (rd_rs1 == 0x2)
+                if (rd_rs1 == 0x2) {
                     //C.ADDI16SP
-                    iType(rd_rs1, rd_rs1, 0, 0, CI_imm * 16, CI_imm * 16, 0, 0x13);
-                else
+                    imm = ((instHalf>>2)&0x10) | ((instHalf<<3)&0x20)|((instHalf<<1)&0x40) | ((instHalf<<4)&0x180)| ((instHalf>>3)&0x200);
+                    signedBit = (instHalf >> 8) & 1;
+                    if(signedBit==1)
+                        imm|=0xF700;
+                    iType(rd_rs1, rd_rs1, 0, 0, imm, imm, 0, 0x13);
+                }
+                else {
                     //C.LUI
-                    uType(rd_rs1, 0x37, CI_imm);
+                    imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+                    signedBit = (imm >> 5) & 1;
+                    if(signedBit == 1)
+                        imm|= 0xFFC0;
+                    uType(rd_rs1, 0x37, imm);
+                }
             }
             else if(funct3==1)
                 //C.JAL
@@ -668,7 +695,7 @@ void compressLog(uint16_t instHalf) {
             }
             else if(S_imm == 0b10001100)
             {
-                ////C.SUB
+                //C.SUB
                 rType(rd_D, rd_D, rs2_d,0x0, 0x20);
             }
             break;
@@ -700,12 +727,18 @@ void compressLog(uint16_t instHalf) {
             else if(funct3==0)
             {
                 //C.SLLI
-                iType(rd_rs1,rd_rs1,0x1,0,0,0,CI_immU,0x13);
+                immU = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+
+                iType(rd_rs1,rd_rs1,0x1,0,0,0,immU,0x13);
             }
             else if(funct3==0x2)
             {
                 //C.LWSP
-                Load(rd_rs1,0x2,0x2,CI_imm*4);
+                imm = ((instHalf >>2) & 0x1C) | ((instHalf <<3)&0x60);
+                signedBit=(imm >> 7) & 1;
+                if(signedBit==1)
+                    imm |= 0xFF00;
+                Load(rd_rs1,0x2,0x2,imm);
             }
         }
 
