@@ -406,6 +406,7 @@ void compressPrint(unsigned int instHalf, int16_t imm)
     rd_D = (instHalf>> 2) & 0x3;
     rd_D += 8;
     rs2_d = rd_D;
+    funct8 = ((instHalf >> 10) & 0x3) | (((instHalf >> 13) & 0x7) << 3);
 
 
     switch (opcode){
@@ -415,10 +416,10 @@ void compressPrint(unsigned int instHalf, int16_t imm)
 
             }
             else if(funct3==0x2) {
-                    cout<<"\tC.LW\t"<<registers[rd_D].getABI()<<", "<<imm<<"("<<registers[rd_D].getABI()<<")"<<endl;
+                    cout<<"\tC.LW\t"<<registers[rd_D].getABI()<<", "<<dec<<imm<<"("<<registers[rd_D].getABI()<<")"<<endl;
             }
             else if(funct3 == 0b110)
-                cout<<"\tC.SW\t"<<registers[rd_D].getABI()<<", "<<imm<<"("<<registers[rs2_d].getABI()<<")"<<endl;
+                cout<<"\tC.SW\t"<<registers[rd_D].getABI()<<", "<<dec<<imm<<"("<<registers[rs2_d].getABI()<<")"<<endl;
         break;
 
         case 1:
@@ -426,44 +427,45 @@ void compressPrint(unsigned int instHalf, int16_t imm)
                 if(rd_rs1==0)
                     cout << "\tC.NOP\t"<<endl;
                 else
-                    cout<<"\tC.ADDI\t"<<registers[rd_rs1].getABI()<<", "<<hex<<imm<<endl;
+                    cout<<"\tC.ADDI\t"<<registers[rd_rs1].getABI()<<", "<<"0x"<<hex<<imm<<endl;
             }
             else if(funct3==0x2) {
-                cout<<"\tC.LI\t"<<registers[rd_rs1].getABI()<<", "<<hex<<imm<<endl;
+                cout<<"\tC.LI\t"<<registers[rd_rs1].getABI()<<", "<<"0x"<<hex<<imm<<endl;
             }
             else if(funct3==0x3) {
                 if(rd_rs1 == 0x2)
-                    cout<<"\tC.ADDI16SP\t"<<hex<<imm<<endl;
+                    cout<<"\tC.ADDI16SP\t"<<"0x"<<hex<<imm<<endl;
                 else
-                    cout<<"\tC.LUI\t"<<registers[rd_rs1].getABI()<<", "<<hex<<imm<<endl;
+                    cout<<"\tC.LUI\t"<<registers[rd_rs1].getABI()<<", "<<"0x"<<hex<<imm<<endl;
 
             }
             else if (imm == 0b10001111)
-                cout<<"\tC.AND\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
+                cout<<"\tC.AND\t"<<registers[rd_rs1D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
 
             else if (imm == 0b10001110)
-                cout<<"\tC.OR\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
+                cout<<"\tC.OR\t"<<registers[rd_rs1D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
 
             else if (imm == 0b10001101)
-                cout<<"\tC.XOR\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
+                cout<<"\tC.XOR\t"<<registers[rd_rs1D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
             else if (imm == 0b10001100)
-                cout<<"\tC.SUB\t"<<registers[rd_D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
+                cout<<"\tC.SUB\t"<<registers[rd_rs1D].getABI()<<", "<<registers[rs2_d].getABI()<<endl;
             else if(funct3==1)
-                cout << "\tC.JAL\t" << "0x" << hex << setw(13) << imm + instPC << endl;
+                cout << "\tC.JAL\t" << "0x" << hex << setw(8) << Pc << endl;
 
             else if(funct3==5)
-                cout << "\tC.J\t"  << "0x " << hex<< setw(13)<< imm + instPC << endl;
+                cout << "\tC.J\t"  << "0x" << hex<< setw(8)<< Pc << endl;
             else if(funct3==6) {
                 cout << "\tC.BEQZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(8) << imm + instPC << "\n";
             }
-            else if(funct3==7)
-                cout << "\tC.BNEZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(8) << imm + instPC << "\n";
+            else if(funct3==7) {
+                cout << "\tC.BNEZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(8) << Pc << "\n";
+            }
 
         else if(funct8==0x20 | funct8==0x24)
-            cout<<"\tC.SRLI\t"<<registers[rd_rs1].getABI()<<", "<<imm<<endl;
+            cout<<"\tC.SRLI\t"<<registers[rd_rs1].getABI()<<", "<<"0x"<<hex<<imm<<endl;
 
         else if(funct8==0x25 | funct8==0x21)
-            cout<<"\tC.SRAI\t"<<registers[rd_rs1].getABI()<<", "<<imm<<endl;
+            cout<<"\tC.SRAI\t"<<registers[rd_rs1].getABI()<<", "<<"0x"<<hex<<imm<<endl;
             else if (funct8 == 0x26 | funct8 == 0x22)
                 cout << "\tAND\t" << registers[rd_rs1].getABI() << ", " << imm<< "\n";
         break;
@@ -485,11 +487,11 @@ void compressPrint(unsigned int instHalf, int16_t imm)
             }
             else if(funct3==0)
             {
-                cout<<"\tC.SLLI\t"<<registers[rd_rs1].getABI()<<", "<<imm<<endl;
+                cout<<"\tC.SLLI\t"<<registers[rd_rs1].getABI()<<", "<<"0x"<<hex<<imm<<endl;
             }
             else if(funct3==0x2)
             {
-                cout<<"\tC.LWSP\t"<<registers[rd_rs1].getABI()<<", "<<imm<<endl;
+                cout<<"\tC.LWSP\t"<<registers[rd_rs1].getABI()<<", "<<dec<<imm<<endl;
             }
             else if (funct3 == 0b110)
             {
@@ -520,69 +522,8 @@ void compressLog(uint16_t instHalf) {
     int16_t imm;
     funct8_s = ((instHalf >> 5) & 0x3) | ((instHalf >> 8) & 0xFC);
     uint16_t immU;
-    funct8 = (instHalf >> 10) & 0x3 | ((instHalf >> 13) & 0x7) << 3;
-//int16_t cj = (instHalf >> 2) & 0x7FF;
-//
-//    //CI parsing
-//    int16_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
-//    int16_t CI_immU = CI_imm;
-//    signedBit = (CI_imm >> 5) & 1;
-//    if(signedBit == 1)
-//        CI_imm|= 0xFFC0;
-//
-//    //CIW parsing
-//    int16_t CIW_imm = (instHalf >> 5) & 0xFF;
-//    signedBit = (CIW_imm >> 7) & 1;
-//    if(signedBit == 1)
-//        CI_imm|= 0xFF00;
-//
-//    //CL parsing
-//    int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
-//    signedBit = (CL_imm >> 4) & 1;
-//    if(signedBit == 1)
-//        CL_imm|= 0xFF70;
-//
-//    //CB parsing
-//    int16_t B_imm = (instHalf >> 2) & 0x1F;
-//    B_imm |= (instHalf >> 10) & 0xF<<4;
-//
-//    int16_t shift=B_imm & 0x1F;
-//    shift|= (B_imm >> 12) & 0x1;
-//    funct8= B_imm & 0xFC00;
+    funct8 = ((instHalf >> 10) & 0x3) | (((instHalf >> 13) & 0x7) << 3);
 
-    //  imm = ((instHalf >> 10) & 0x7)  << 6 | ((instHalf >> 3) & 0x7)  << 1 | ((instHalf >> 2) & 0x1)   << 5;
-
-
-
-
-
-//    signedBit = (B_imm >> 7) & 1;
-//    if(signedBit == 1)
-//        B_imm|= 0xFF00;
-//
-//
-//    //CJ parsing
-//    int16_t J_imm;
-//
-//    // Extract each bit and place it in the correct position in J_imm
-//    J_imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) | ((instHalf>>2) & 0x20) | (instHalf&0x40) | ((instHalf>>2)&0x180) | ((instHalf <<1) & 0x200) | ((instHalf>>2)&0x400);
-//
-//
-//    // Sign extend J_imm to 16 bits
-//    signedBit=imm>>11;
-//    if (signedBit==1) {
-//        J_imm |= 0xF000;
-//    }
-//
-//    // CSS parsing
-//    int16_t SS_imm = (instHalf>>7)& 0x3F;
-//    signedBit = (SS_imm >> 7) & 1;
-//    if(signedBit == 1)
-//        SS_imm|= 0x70;
-//
-//    // CS Parsing
-//    int16_t S_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C) | (funct3>>7);
-//    compressPrint(instHalf);
 if(!exitProgram){
     printPrefix(instPC, instHalf);
     switch (opcode) {
@@ -684,48 +625,57 @@ if(!exitProgram){
                     Pc = bType(rs1_D, 0, 0, imm, c);
                 }
         else if (funct3 == 7) {
+            //C.BNEZ
             imm = ((instHalf>>2) & 0xC) | ((instHalf >> 7) & 0x18) | ((instHalf << 3) & 0x20) | ((instHalf << 1)&0xC0) | ((instHalf >>4) &0x100);
             //sign extension
             signedBit = imm >> 8;
             if (signedBit == 1)
                 imm |= 0xFE00;
 
+
                     Pc = bType(rs1_D, 0, 1, imm, c);
                 } else if (funct8 == 0x20 | funct8 == 0x24)
                 {
-                    immU = ((instHalf >> 2) & 0x1F);
-                    immU |= ((instHalf >> 7) & 0x1) << 5;
-                    iType(rs1_D, rs1_D, 5, 1, imm, imm, immU, 0x13);
+                    //C.SRLI
+                    imm = ((instHalf >> 2) & 0x1F);
+                    imm |= ((instHalf >> 7) & 0x1) << 5;
+                    imm &= 0b011111;
+                    iType(rs1_D, rs1_D, 5, 1, 0, 0, imm, 0x13);
                 } else if (funct8 == 0x25 | funct8 == 0x21) {
-                    immU = ((instHalf >> 2) & 0x1F);
-                    immU |= ((instHalf >> 7) & 0x1) << 5;
-                    iType(rs1_D, rs1_D, 5, 0, imm, imm, immU, 0x13);
+                    imm = ((instHalf >> 2) & 0x1F);
+                    imm |= ((instHalf >> 7) & 0x1) << 5;
+                    iType(rs1_D, rs1_D, 5, 0, 0, 0, imm, 0x13);
 
                 }
                 else if (funct8 == 0x26 | funct8 == 0x22) {
                     imm = ((instHalf >> 2) & 0x1F);
                     imm |= ((instHalf >> 7) & 0x1) << 5;
-                    iType(rs1_D, rs1_D, 7, 0, imm, imm, immU, 0x13);
+                    imm &= 0b011111;
+                    iType(rs1_D, rs1_D, 7, 0, imm, imm, 0, 0x13);
 
                 }
                 else if (funct8_s == 0b10001111) {
                     //C.AND
-                    rType(rd_D, rd_D, rs2_d,0x7, 0x00);
+                    imm=funct8_s;
+                    rType(rd_rs1D, rd_rs1D, rs2_d,0x7, 0x00);
                 }
                 else if(funct8_s == 0b10001110)
                 {
                     //C.OR
-                    rType(rd_D, rd_D, rs2_d,0x6, 0x00);
+                    imm=funct8_s;
+                    rType(rd_rs1D, rd_rs1D, rs2_d,0x6, 0x00);
                 }
                 else if(funct8_s == 0b10001101)
                 {
                     //C.XOR
-                    rType(rd_D, rd_D, rs2_d,0x4, 0x00);
+                    imm=funct8_s;
+                    rType(rd_rs1D, rd_rs1D, rs2_d,0x4, 0x00);
                 }
                 else if(funct8_s == 0b10001100)
                 {
                     //C.SUB
-                    rType(rd_D, rd_D, rs2_d,0x0, 0x20);
+                    imm=funct8_s;
+                    rType(rd_rs1D, rd_rs1D, rs2_d,0x0, 0x20);
                 }
                 break;
                 case 2:
@@ -761,6 +711,7 @@ if(!exitProgram){
                     } else if (funct3 == 0) {
                         //C.SLLI
                         imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 7) & 0x20);
+                        imm &= 0b011111;
 
                         iType(rd_rs1, rd_rs1, 0x1, 0, 0, 0, imm, 0x13);
                     } else if (funct3 == 0x2) {
