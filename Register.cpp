@@ -53,12 +53,17 @@ Register::Register(int x)
 
 void Register::setData(int x)
 {
-    data = static_cast<unsigned int>(x);
+    if(this->ABI == "zero")
+        data = 0;
+    else
+        data = static_cast<unsigned int>(x);
 }
 
 void Register::setDataU(unsigned int x) {
-    data = x;
-}
+    if(this->ABI == "zero")
+        data = 0;
+    else
+        data = x;}
 
 string Register::getName()
 {
@@ -79,7 +84,7 @@ unsigned int Register::getDataU() {
 
 void Register::printRegData()
 {
-    cout<<"Register\t"<<this->getABI()<<"\t0x"<<hex << setfill('0') << setw(8) << this->getDataU()<<endl;
+    cout<<"Register\t"<<this->getABI()<<"\t0x"<< hex << setfill('0') << setw(8) << this->getDataU()<<endl;
 }
 
 
