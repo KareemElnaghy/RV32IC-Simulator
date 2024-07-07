@@ -497,6 +497,7 @@ int16_t J_imm;
                 cout << "\tC.BNEZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << B_imm + instPC << "\n";
 
         //  else if(funct8==0x20 | funct8==0x24)
+            cout<<"\tC.SRLI\t"<<registers[rd_rs1].getABI()<<", "<<CI_immU<<endl;
         //   iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
         // else if(funct8==0x25 | funct8==0x21)
         //    iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
@@ -550,6 +551,7 @@ void compressLog(uint16_t instHalf) {
     rd_D += 8;
     rs2_d = rd_D;
     int16_t imm;
+    int16_t shift;
 
 //int16_t cj = (instHalf >> 2) & 0x7FF;
 //
@@ -577,9 +579,17 @@ void compressLog(uint16_t instHalf) {
 //    B_imm |= (instHalf >> 10) & 0xF<<4;
 //
 //    int16_t shift=B_imm & 0x1F;
-//    shift|= (B_imm >> 7) & 0x1;
+//    shift|= (B_imm >> 12) & 0x1;
 //    funct8= B_imm & 0xFC00;
-//
+
+  //  imm = ((instHalf >> 10) & 0x7)  << 6 | ((instHalf >> 3) & 0x7)  << 1 | ((instHalf >> 2) & 0x1)   << 5;
+
+
+   shift=((instHalf >> 2)  & 0x1F);
+   shift|=((instHalf >> 7) & 0x1) << 5;
+   funct8=(instHalf >> 10) & 0x3 | ((instHalf >> 13) & 0x7)  << 3;
+
+
 //    signedBit = (B_imm >> 7) & 1;
 //    if(signedBit == 1)
 //        B_imm|= 0xFF00;
@@ -593,8 +603,9 @@ void compressLog(uint16_t instHalf) {
 //
 //
 //    // Sign extend J_imm to 16 bits
-//    if (J_imm & 0x0800) {
-//        J_imm |= 0xF800;
+//    signedBit=imm>>11;
+//    if (signedBit==1) {
+//        J_imm |= 0xF000;
 //    }
 //
 //    // CSS parsing
@@ -629,18 +640,48 @@ void compressLog(uint16_t instHalf) {
                 else
                     uType(rd_rs1, 0x37, CI_imm);
             }
-            else if(funct3==1)
-                Pc=jType(1,2*J_imm,c);
-            else if(funct3==5)
-                Pc=jType(0,2*J_imm,c);
-            else if(funct3==6)
-                Pc=bType(rs1_D,0,0,B_imm,c);
-            else if(funct3==7)
-               Pc= bType(rs1_D,0,1,B_imm,c);
+            else if(funct3==1) {
+                imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) | ((instHalf>>2) & 0x20) | (instHalf&0x40) | ((instHalf>>2)&0x180) | ((instHalf <<1) & 0x200) | ((instHalf>>2)&0x400);
+                signedBit=imm>>11;
+               if (signedBit==1) {
+                imm |= 0xF000;
+
+                Pc = jType(1, 2 * imm, c);
+            }
+            else if(funct3==5) {
+                imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) | ((instHalf>>2) & 0x20) | (instHalf&0x40) | ((instHalf>>2)&0x180) | ((instHalf <<1) & 0x200) | ((instHalf>>2)&0x400);
+                   signedBit=imm>>11;
+                   if (signedBit==1)
+                       imm |= 0xF000;
+                Pc = jType(0, 2 * imm, c);
+            }
+            else if(funct3==6) {
+
+                imm = ((instHalf >> 10) & 0x7)  << 6 | ((instHalf >> 3) & 0x7)  << 1 | ((instHalf >> 2) & 0x1)   << 5;
+                //sign extension
+                       signedBit=imm>>8;
+                       if (signedBit==1)
+                           imm |= 0xFE00;
+                Pc = bType(rs1_D, 0, 0, 2*imm, c);
+            }
+            else if(funct3==7) {
+                imm = ((instHalf >> 10) & 0x7)  << 6 | ((instHalf >> 3) & 0x7)  << 1 | ((instHalf >> 2) & 0x1)   << 5;
+                //sign extension
+
+                Pc = bType(rs1_D, 0, 1, 2*imm, c);
+            }
             else if(funct8==0x20 | funct8==0x24)
-                iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
+            {
+                shift=B_imm & 0x1F;
+                shift|= (B_imm >> 7) & 0x1;
+                funct8= B_imm & 0xFC00;
+
+                   iType(rs1_D, rs1_D, 5, 1, B_imm, B_imm, shift, 0x13);
+               }
             else if(funct8==0x25 | funct8==0x21)
-                iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
+            {
+                   iType(rs1_D, rs1_D, 5, 0, B_imm, B_imm, shift, 0x13);
+               }
             else if(S_imm == 0b10001111)
             {
                 rType(rd_D, rd_D, rs2_d,0x7, 0x00);
