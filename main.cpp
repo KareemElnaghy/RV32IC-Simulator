@@ -454,10 +454,11 @@ void compressPrint(unsigned int instHalf, int16_t imm)
             }
             else if(funct3==5)
                 cout << "\tC.J\t"  << "0x " << hex<< setw(13)<< imm + instPC << endl;
-            else if(funct3==6)
-                cout << "\tC.BEQZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << imm + instPC << "\n";
+            else if(funct3==6) {
+                cout << "\tC.BEQZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(8) << imm + instPC << "\n";
+            }
             else if(funct3==7)
-                cout << "\tC.BNEZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << imm + instPC << "\n";
+                cout << "\tC.BNEZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(8) << imm + instPC << "\n";
 
         else if(funct8==0x20 | funct8==0x24)
             cout<<"\tC.SRLI\t"<<registers[rd_rs1].getABI()<<", "<<imm<<endl;
@@ -678,8 +679,8 @@ if(!exitProgram){
                     Pc = jType(0, imm, c);
                 }
                 else if (funct3 == 6) {
-
-                    imm = ((instHalf >> 10) & 0x7) << 6 | ((instHalf >> 3) & 0x7) << 1 | ((instHalf >> 2) & 0x1) << 5;
+                //C.BEQZ
+                    imm = ((instHalf>>2) & 0xC) | ((instHalf >> 7) & 0x18) | ((instHalf << 3) & 0x20) | ((instHalf << 1)&0xC0) | ((instHalf >>4) &0x100);
                     //sign extension
                     signedBit = imm >> 8;
                     if (signedBit == 1)
@@ -687,8 +688,11 @@ if(!exitProgram){
                     Pc = bType(rs1_D, 0, 0, imm, c);
                 }
         else if (funct3 == 7) {
-                    imm = ((instHalf >> 10) & 0x7) << 6 | ((instHalf >> 3) & 0x7) << 1 | ((instHalf >> 2) & 0x1) << 5;
-                    //sign extension
+            imm = ((instHalf>>2) & 0xC) | ((instHalf >> 7) & 0x18) | ((instHalf << 3) & 0x20) | ((instHalf << 1)&0xC0) | ((instHalf >>4) &0x100);
+            //sign extension
+            signedBit = imm >> 8;
+            if (signedBit == 1)
+                imm |= 0xFE00;
 
                     Pc = bType(rs1_D, 0, 1, imm, c);
                 }
