@@ -549,63 +549,63 @@ void compressLog(uint16_t instHalf) {
     rd_D = (instHalf>> 2) & 0x3;
     rd_D += 8;
     rs2_d = rd_D;
+    int16_t imm;
 
-
-int16_t cj = (instHalf >> 2) & 0x7FF;
-
-    //CI parsing
-    int16_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
-    int16_t CI_immU = CI_imm;
-    signedBit = (CI_imm >> 5) & 1;
-    if(signedBit == 1)
-        CI_imm|= 0xFFC0;
-
-    //CIW parsing
-    int16_t CIW_imm = (instHalf >> 5) & 0xFF;
-    signedBit = (CIW_imm >> 7) & 1;
-    if(signedBit == 1)
-        CI_imm|= 0xFF00;
-
-    //CL parsing
-    int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
-    signedBit = (CL_imm >> 4) & 1;
-    if(signedBit == 1)
-        CL_imm|= 0xFF70;
-
-    //CB parsing
-    int16_t B_imm = (instHalf >> 2) & 0x1F;
-    B_imm |= (instHalf >> 10) & 0xF<<4;
-
-    int16_t shift=B_imm & 0x1F;
-    shift|= (B_imm >> 7) & 0x1;
-    funct8= B_imm & 0xFC00;
-
-    signedBit = (B_imm >> 7) & 1;
-    if(signedBit == 1)
-        B_imm|= 0xFF00;
-
-
-    //CJ parsing
-    int16_t J_imm;
-
-    // Extract each bit and place it in the correct position in J_imm
-    J_imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) | ((instHalf>>2) & 0x20) | (instHalf&0x40) | ((instHalf>>2)&0x180) | ((instHalf <<1) & 0x200) | ((instHalf>>2)&0x400);
-
-
-    // Sign extend J_imm to 16 bits
-    if (J_imm & 0x0800) {
-        J_imm |= 0xF800;
-    }
-
-    // CSS parsing
-    int16_t SS_imm = (instHalf>>7)& 0x3F;
-    signedBit = (SS_imm >> 7) & 1;
-    if(signedBit == 1)
-        SS_imm|= 0x70;
-
-    // CS Parsing
-    int16_t S_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C) | (funct3>>7);
-    compressPrint(instHalf);
+//int16_t cj = (instHalf >> 2) & 0x7FF;
+//
+//    //CI parsing
+//    int16_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+//    int16_t CI_immU = CI_imm;
+//    signedBit = (CI_imm >> 5) & 1;
+//    if(signedBit == 1)
+//        CI_imm|= 0xFFC0;
+//
+//    //CIW parsing
+//    int16_t CIW_imm = (instHalf >> 5) & 0xFF;
+//    signedBit = (CIW_imm >> 7) & 1;
+//    if(signedBit == 1)
+//        CI_imm|= 0xFF00;
+//
+//    //CL parsing
+//    int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
+//    signedBit = (CL_imm >> 4) & 1;
+//    if(signedBit == 1)
+//        CL_imm|= 0xFF70;
+//
+//    //CB parsing
+//    int16_t B_imm = (instHalf >> 2) & 0x1F;
+//    B_imm |= (instHalf >> 10) & 0xF<<4;
+//
+//    int16_t shift=B_imm & 0x1F;
+//    shift|= (B_imm >> 7) & 0x1;
+//    funct8= B_imm & 0xFC00;
+//
+//    signedBit = (B_imm >> 7) & 1;
+//    if(signedBit == 1)
+//        B_imm|= 0xFF00;
+//
+//
+//    //CJ parsing
+//    int16_t J_imm;
+//
+//    // Extract each bit and place it in the correct position in J_imm
+//    J_imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) | ((instHalf>>2) & 0x20) | (instHalf&0x40) | ((instHalf>>2)&0x180) | ((instHalf <<1) & 0x200) | ((instHalf>>2)&0x400);
+//
+//
+//    // Sign extend J_imm to 16 bits
+//    if (J_imm & 0x0800) {
+//        J_imm |= 0xF800;
+//    }
+//
+//    // CSS parsing
+//    int16_t SS_imm = (instHalf>>7)& 0x3F;
+//    signedBit = (SS_imm >> 7) & 1;
+//    if(signedBit == 1)
+//        SS_imm|= 0x70;
+//
+//    // CS Parsing
+//    int16_t S_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C) | (funct3>>7);
+//    compressPrint(instHalf);
 
     switch (opcode){
         case 0:
@@ -615,7 +615,7 @@ int16_t cj = (instHalf >> 2) & 0x7FF;
             else if(funct3==0x2) {
                 Load(rd_D,rs1_D,0x2,CL_imm);
             }
-
+            break;
         case 1:
             if(funct3==0) {
                 iType(0,0,0,0,0,0,0,0x13);
@@ -657,7 +657,7 @@ int16_t cj = (instHalf >> 2) & 0x7FF;
             {
                 rType(rd_D, rd_D, rs2_d,0x0, 0x20);
             }
-
+            break;
         case 2:
             if(funct4 == 0b1000)
             {
