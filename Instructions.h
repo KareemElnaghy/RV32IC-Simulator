@@ -83,71 +83,20 @@ void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int fun
 
     int bType(unsigned int rs1, unsigned int rs2, unsigned int funct3,int16_t  b_imm, bool comp) {
 
+
+//
+//
+//    // Sign extend J_imm to 16 bits
+//    if (J_imm & 0x0800) {
+//        J_imm |= 0xF800;
+//    }
         int r;
+        int instPC1;
         if(!comp)
-        {
-            int instPC1 = Pc - 4;
-            int signedBit = (b_imm >> 12) & 1;
-            if (signedBit == 1) {
-                b_imm |= 0xE000;
-            }
-
-            switch (funct3) {
-                case 0: {
-                    if (registers[rs1].getData() == registers[rs2].getData())
-                        r = b_imm + instPC1;
-                    else
-                        r = Pc;
-                    break;
-                }
-
-                case 1: {
-                    if (registers[rs1].getData() != registers[rs2].getData())
-                        r = b_imm + instPC1;
-                    else
-                        r = Pc;
-                    break;
-                }
-
-                case 4: {
-                    if (registers[rs1].getData() < registers[rs2].getData())
-                        r = b_imm + instPC1;
-                    else
-                        r = Pc;
-                    break;
-                }
-
-                case 5: {
-                    if (registers[rs1].getData() >= registers[rs2].getData())
-                        r = b_imm + instPC1;
-                    else
-                        r = Pc;
-                    break;
-                }
-
-                case 6: {
-                    if (registers[rs1].getData() < registers[rs2].getData())
-                        r = b_imm + instPC1;
-                    else
-                        r = Pc;
-                    break;
-                }
-
-                case 7: {
-                    if (registers[rs1].getData() >= registers[rs2].getData())
-                        r = b_imm + instPC1;
-                    else
-                        r = Pc;
-                    break;
-                }
-
-                default:
-                    break;
-            }
-        }
+            instPC1 = Pc - 4;
         else
-        {
-            int instPC1 = Pc - 2;
+            instPC1 = Pc - 2;
+
             int signedBit = (b_imm >> 12) & 1;
             if (signedBit == 1) {
                 b_imm |= 0xE000;
@@ -205,7 +154,9 @@ void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int fun
                 default:
                     break;
             }
-        }
+
+
+
 
         return r;
 

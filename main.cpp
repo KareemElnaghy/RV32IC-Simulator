@@ -451,6 +451,7 @@ void compressPrint(unsigned int instHalf, int16_t imm)
                 cout << "\tC.BNEZ\t" << registers[rs1_D].getABI() << ", " << registers[0].getABI() << ", " << "0x" << hex << setw(13) << B_imm + instPC << "\n";
 
         //  else if(funct8==0x20 | funct8==0x24)
+            cout<<"\tC.SRLI\t"<<registers[rd_rs1].getABI()<<", "<<CI_immU<<endl;
         //   iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
         // else if(funct8==0x25 | funct8==0x21)
         //    iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
@@ -510,7 +511,72 @@ void compressLog(uint16_t instHalf) {
     int16_t imm;
     funct8_s = ((instHalf>>5)&0x3) | ((instHalf>>8)&0xFC);
     uint16_t immU;
+    int16_t shift;
 
+//int16_t cj = (instHalf >> 2) & 0x7FF;
+//
+//    //CI parsing
+//    int16_t CI_imm = ((instHalf >> 2) & 0x1F) | ((instHalf >> 6) & 0x20);
+//    int16_t CI_immU = CI_imm;
+//    signedBit = (CI_imm >> 5) & 1;
+//    if(signedBit == 1)
+//        CI_imm|= 0xFFC0;
+//
+//    //CIW parsing
+//    int16_t CIW_imm = (instHalf >> 5) & 0xFF;
+//    signedBit = (CIW_imm >> 7) & 1;
+//    if(signedBit == 1)
+//        CI_imm|= 0xFF00;
+//
+//    //CL parsing
+//    int16_t CL_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C);
+//    signedBit = (CL_imm >> 4) & 1;
+//    if(signedBit == 1)
+//        CL_imm|= 0xFF70;
+//
+//    //CB parsing
+//    int16_t B_imm = (instHalf >> 2) & 0x1F;
+//    B_imm |= (instHalf >> 10) & 0xF<<4;
+//
+//    int16_t shift=B_imm & 0x1F;
+//    shift|= (B_imm >> 12) & 0x1;
+//    funct8= B_imm & 0xFC00;
+
+  //  imm = ((instHalf >> 10) & 0x7)  << 6 | ((instHalf >> 3) & 0x7)  << 1 | ((instHalf >> 2) & 0x1)   << 5;
+
+
+   shift=((instHalf >> 2)  & 0x1F);
+   shift|=((instHalf >> 7) & 0x1) << 5;
+   funct8=(instHalf >> 10) & 0x3 | ((instHalf >> 13) & 0x7)  << 3;
+
+
+//    signedBit = (B_imm >> 7) & 1;
+//    if(signedBit == 1)
+//        B_imm|= 0xFF00;
+//
+//
+//    //CJ parsing
+//    int16_t J_imm;
+//
+//    // Extract each bit and place it in the correct position in J_imm
+//    J_imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) | ((instHalf>>2) & 0x20) | (instHalf&0x40) | ((instHalf>>2)&0x180) | ((instHalf <<1) & 0x200) | ((instHalf>>2)&0x400);
+//
+//
+//    // Sign extend J_imm to 16 bits
+//    signedBit=imm>>11;
+//    if (signedBit==1) {
+//        J_imm |= 0xF000;
+//    }
+//
+//    // CSS parsing
+//    int16_t SS_imm = (instHalf>>7)& 0x3F;
+//    signedBit = (SS_imm >> 7) & 1;
+//    if(signedBit == 1)
+//        SS_imm|= 0x70;
+//
+//    // CS Parsing
+//    int16_t S_imm = ((instHalf >> 5) & 3) | ((instHalf >> 8) & 0x1C) | (funct3>>7);
+//    compressPrint(instHalf);
 
     switch (opcode){
         case 0:
@@ -578,21 +644,47 @@ void compressLog(uint16_t instHalf) {
                     uType(rd_rs1, 0x37, imm);
                 }
             }
-            else if(funct3==1)
-                //C.JAL
-                Pc=jType(1,2*J_imm,c);
-            else if(funct3==5)
-                //C.J
-                Pc=jType(0,2*J_imm,c);
-            else if(funct3==6)
-                //C.BEQZ
-                Pc=bType(rs1_D,0,0,B_imm,c);
-            else if(funct3==7)
-                //C.BNEZ
-               Pc= bType(rs1_D,0,1,B_imm,c);
+            else if(funct3==1) {
+                imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) | ((instHalf>>2) & 0x20) | (instHalf&0x40) | ((instHalf>>2)&0x180) | ((instHalf <<1) & 0x200) | ((instHalf>>2)&0x400);
+                signedBit=imm>>11;
+               if (signedBit==1) {
+                imm |= 0xF000;
+
+                Pc = jType(1, imm, c);
+            }
+            else if(funct3==5) {
+                imm = ((instHalf >> 3) & 0x7) | ((instHalf >> 8) & 0x8) | ((instHalf << 2) & 0x10) | ((instHalf>>2) & 0x20) | (instHalf&0x40) | ((instHalf>>2)&0x180) | ((instHalf <<1) & 0x200) | ((instHalf>>2)&0x400);
+                   signedBit=imm>>11;
+                   if (signedBit==1)
+                       imm |= 0xF000;
+                Pc = jType(0,  imm, c);
+            }
+            else if(funct3==6) {
+
+                imm = ((instHalf >> 10) & 0x7)  << 6 | ((instHalf >> 3) & 0x7)  << 1 | ((instHalf >> 2) & 0x1)   << 5;
+                //sign extension
+                       signedBit=imm>>8;
+                       if (signedBit==1)
+                           imm |= 0xFE00;
+                Pc = bType(rs1_D, 0, 0, imm, c);
+            }
+            else if(funct3==7) {
+                imm = ((instHalf >> 10) & 0x7)  << 6 | ((instHalf >> 3) & 0x7)  << 1 | ((instHalf >> 2) & 0x1)   << 5;
+                //sign extension
+
+                Pc = bType(rs1_D, 0, 1, imm, c);
+            }
             else if(funct8==0x20 | funct8==0x24)
-                iType(rs1_D,rs1_D,5,1,B_imm,B_imm,shift,0x13);
+            {
+
+
+                   iType(rs1_D, rs1_D, 5, 1, B_imm, B_imm, shift, 0x13);
+               }
             else if(funct8==0x25 | funct8==0x21)
+            {
+                   iType(rs1_D, rs1_D, 5, 0, B_imm, B_imm, shift, 0x13);
+               }
+            else if(S_imm == 0b10001111)
                 iType(rs1_D,rs1_D,5,0,B_imm,B_imm,shift,0x13);
             else if(funct8_s == 0b10001111)
             {
