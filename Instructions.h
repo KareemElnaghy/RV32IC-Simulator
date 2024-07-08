@@ -84,12 +84,6 @@ void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int fun
     int bType(unsigned int rs1, unsigned int rs2, unsigned int funct3,int16_t  b_imm, bool comp) {
 
 
-//
-//
-//    // Sign extend J_imm to 16 bits
-//    if (J_imm & 0x0800) {
-//        J_imm |= 0xF800;
-//    }
         int r;
         int instPC1;
         if(!comp) {
@@ -98,10 +92,7 @@ void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int fun
         else
             instPC1 = Pc - 2;
 
-            int signedBit = (b_imm >> 12) & 1;
-            if (signedBit == 1) {
-                b_imm |= 0xE000;
-            }
+
 
             switch (funct3) {
                 case 0: {
@@ -141,7 +132,7 @@ void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int fun
                 }
 
                 case 6: {
-                    if (registers[rs1].getData() < registers[rs2].getData())
+                    if (registers[rs1].getDataU() < registers[rs2].getDataU())
                         r = b_imm + instPC1;
                     else
                         r = Pc;
@@ -149,7 +140,7 @@ void rType(unsigned int rd, unsigned int rs1, unsigned int rs2, unsigned int fun
                 }
 
                 case 7: {
-                    if (registers[rs1].getData() >= registers[rs2].getData())
+                    if (registers[rs1].getDataU() >= registers[rs2].getDataU())
                         r = b_imm + instPC1;
                     else
                         r = Pc;
@@ -176,10 +167,7 @@ int jType(unsigned int rd,int16_t  j_imm, bool comp)
     else
         instPC1=Pc-2;
 
-        int signedBit = (j_imm >> 12) & 1;
-        if (signedBit == 1) {
-            j_imm |= 0xE000;
-        }
+
         registers[rd].setData(Pc);
         r = j_imm + instPC1;
 
@@ -222,10 +210,6 @@ void iType(unsigned int rd, unsigned int rs1, unsigned int funct3,unsigned int f
     int32_t temp;
     unsigned int tempU;
 
-    int signedBit = (I_imm >> 11) & 1;
-    if(signedBit == 1) {
-        I_imm|= 0xF000;
-    }
 
     switch (funct3) {
         case 0:
