@@ -800,7 +800,7 @@ int main(int argc, char *argv[]) {
 
                 compressLog(instWord1);
             }
-            printRegContent();
+            //printRegContent();
 
             }
 
